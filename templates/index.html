@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>提交页面</title>
+</head>
+<body>
+<center>
+    <p>验证码：{{passport}}</p><br>
+    <!-- <p>上传文件请用文件名标明姓名班级。</p> -->
+    <form action="/" method="post" enctype="multipart/form-data">
+        组长名字：<input type="text" name="group_name" /><br>
+        <input type="file" name="file" /><br>
+        验证码：<input type="text" name="passport" /><br>
+        <input type="hidden" name="s" value={{s}} /><br>
+        <input type="submit" value="上传文件" />
+    </form>
+</center>
+</body>
+</html>
