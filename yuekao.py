@@ -17,7 +17,7 @@ def captcha_get(string: str):
     font = ImageFont.truetype("segoeprb.ttf", 15)
     empty_draw = ImageDraw.Draw(empty)
     text_size = empty_draw.textsize(string, font=font)
-    print(text_size)
+    # print(text_size)
     im = Image.new("RGB", text_size, color='white')
     draw = ImageDraw.Draw(im)
     draw.ink = 0
@@ -89,6 +89,7 @@ def index():
         group_name = form['group_name']
         student_name = form['student_name']
         score = form['score']
+        feedback = form['feedback']
 
         if group_name == '' or student_name == '' or subject == '' or score == '':
             return '表单填写错误，请重新填写。'
@@ -104,6 +105,11 @@ def index():
 def captcha_get_img(cid: str):
     # print(cid)
     return redirect(url_for('static',filename='%s.jpg' % cid))
+
+
+@app.route('/favicon.ico')
+def icon():
+    return redirect('https://s.gravatar.com/avatar/544b5009873b27f5e0aa6dd8ffc1d3d8?s=144')
 
 
 if __name__ == '__main__':
