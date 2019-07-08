@@ -8,8 +8,10 @@ from datetime import datetime
 import pytz
 from upload import *
 from PIL import Image, ImageDraw, ImageFont
+from database import DataBase
 
 app = Flask(__name__, static_folder='tmp')
+db = DataBase()
 
 
 def captcha_get(string: str):
@@ -96,15 +98,31 @@ def index():
 
         time_date = str(time_cn.year).zfill(4) + '/' + str(time_cn.month).zfill(2) + '/' + str(time_cn.day).zfill(2)
         file_key = "%s/%s/%s/%s.%s" % (time_date, subject, group_name, student_name, file_type)
-        print(file_key)
+        file_url = get_upload_prefix() + file_key
+        submit_time = int(time.time())
+        # print(file_key)
         upload_file_threaded(file_key, filedata)
+
+        db.new_submit(group_name, student_name, subject, score, file_url, feedback, submit_time)
+
         return '上传成功启动。请等待服务器CDN缓存(约30秒，视文件大小而定)'
+
+
+@app.route('/data')
+def show_data():
+    pass
 
 
 @app.route('/captcha/<string:cid>')
 def captcha_get_img(cid: str):
     # print(cid)
     return redirect(url_for('static',filename='%s.jpg' % cid))
+
+
+@app.route('/debug_clear')
+def clear_all():
+    db.db_init()
+    return 'OK.'
 
 
 @app.route('/favicon.ico')

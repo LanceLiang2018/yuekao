@@ -9,13 +9,7 @@ class DataBase:
     def __init__(self):
         self.file_db_init = "db_init.sql"
 
-        self.tables = ['go', ]
-
-        self.opposite = {
-            0: 0,
-            1: 2,
-            2: 1,
-        }
+        self.tables = ['raw_data', ]
 
         # self.sql_type = "PostgreSQL"
         self.sql_types = {"SQLite": 0, "PostgreSQL": 1}
@@ -35,12 +29,17 @@ class DataBase:
     def v(self, string: str):
         return string.replace('%s', self.sql_char)
 
-    def make_result(self, code, **args):
-        result = {
-            "code": int(code),
-            "data": args
-        }
-        return json.dumps(result)
+    def new_execute_write(self, string: str, args=()):
+        cursor = self.cursor_get()
+        cursor.execute(self.v(string), args)
+        self.cursor_finish(cursor)
+
+    def new_execute_read(self, string: str, args=()):
+        cursor = self.cursor_get()
+        cursor.execute(self.v(string), args)
+        data = cursor.fetch_all()
+        self.cursor_finish(cursor)
+        return data
 
     def connect_init(self):
         if self.sql_type == self.sql_types['SQLite']:
@@ -89,56 +88,18 @@ class DataBase:
                     print('Error:\n', s, 'Exception:\n', e)
         self.cursor_finish(cursor)
 
-    def write(self, code: str, player: int, data_str: str, winner: int=0):
-        cursor = self.cursor_get()
-        cursor.execute(self.v("SELECT code FROM go WHERE code = %s"), (code, ))
-        data = cursor.fetchall()
-        if len(data) == 0:
-            cursor.execute(self.v("INSERT INTO go (code, status, data, uptime, winner) VALUES (%s, %s, %s, %s, %s)"),
-                           (code, self.opposite[player], data_str, int(time.time()), 0))
-            self.cursor_finish(cursor)
-        else:
-            cursor.execute(self.v("UPDATE go SET status = %s, data = %s, uptime = %s, winner = %s WHERE code = %s"),
-                           (self.opposite[player], data_str, int(time.time()), winner, code))
-            self.cursor_finish(cursor)
+    def new_submit(self, group_name, student, subject, score, file_url, feedback, submit_time):
+        self.new_execute_write("INSERT INTO raw_data (group_name, student, subject, score, file_url, "
+                         "feedback, submit_time) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                         (group_name, student, subject, score, file_url, feedback, submit_time))
 
-        return self.make_result(0)
-
-    def read(self, code):
-        cursor = self.cursor_get()
-        cursor.execute(self.v("SELECT status, data, uptime, winner FROM go WHERE code = %s"), (code, ))
-        data = cursor.fetchall()
-        self.cursor_finish(cursor)
-        if len(data) == 0:
-            return {
-                "code": code,
-                "status": 0,
-                "data": '',
-                "uptime": 0,
-                "winner": 0,
-                "error": "No such of code."
-            }
-        data = data[0]
-        return {
-            "code": code,
-            "status": data[0],
-            "data": data[1],
-            "uptime": data[2],
-            "winner": data[3],
-        }
-
-
-def jsonify(string: str):
-    return json.loads(string)
+    def get_raw_data(self):
+        data = self.new_execute_read("SELECT ")
 
 
 if __name__ == '__main__':
     db = DataBase()
     db.db_init()
-    print(db.opposite[0])
-    db.write('code', 1, '0000\n0000\n0000\n0000', 0)
-    print(db.read('code'))
-    db.write('code', 1, '0000\n0010\n0000\n0000', 0)
-    print(db.read('code'))
+
 
 

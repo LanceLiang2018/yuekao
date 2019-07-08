@@ -36,3 +36,7 @@ def upload_file_threaded(key: str, filedata: io.BytesIO, join=False):
     t.start()
     if join:
         t.join()
+
+
+def get_upload_prefix():
+    return 'https://yuekao-1254016670.cos.ap-chengdu.myqcloud.com/'
