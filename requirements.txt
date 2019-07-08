@@ -1,0 +1,11 @@
+flask
+psycopg2
+requests
+cos-python-sdk-v5
+pytz
+colorlog
+tqdm
+bs4
+lxml
+six
+markdown

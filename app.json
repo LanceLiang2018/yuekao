@@ -1,0 +1,22 @@
+{
+  "name": "LTYZ Class 201702 YueKao Submit System",
+  "description": "LTYZ Class 201702 YueKao submit system.",
+  "image": "heroku/python",
+  "repository": "https://github.com/LanceLiang2018/yuekao",
+  "keywords": ["python", "django" ],
+  "addons": [ "heroku-postgresql" ],
+  "env": {
+    "SECRET_KEY": {
+      "description": "The secret key for the Django application.",
+      "generator": "secret"
+    }
+  },
+  "environments": {
+    "test": {
+      "scripts": {
+        "test-setup": "python yuekao.py",
+        "test": "python yuekao.py"
+      }
+    }
+  }
+}
