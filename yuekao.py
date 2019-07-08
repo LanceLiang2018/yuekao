@@ -111,6 +111,6 @@ if __name__ == '__main__':
     for _i in _li:
         if _i != '.nomedia':
             os.remove('tmp/%s' % _i)
-    app.run('0.0.0.0', port=os.getenv("PORT", "5000"), debug=True)
+    app.run('0.0.0.0', port=os.getenv("PORT", "5000"), debug=False)
     # captcha_get("12 + 32").show()
 
