@@ -5,25 +5,26 @@
     <title>提交页面</title>
 </head>
 <body>
-<center>
-    <p>验证码：{{passport}}</p><br>
-    <!-- <p>上传文件请用文件名标明姓名班级。</p> -->
-    <form action="/" method="post" enctype="multipart/form-data">
-        组长名字：<input type="text" name="group_name" /><br>
-        自己名字：<input type="text" name="student_name" /><br>
-        学科选择：<select name="subject">
-        <option value="语文">语文</option>
-        <option value="数学">数学</option>
-        <option value="英语">英语</option>
-        <option value="物理">物理</option>
-        <option value="化学">化学</option>
-        <option value="生物">生物</option>
-    </select><br>
-        上传照片：<input type="file" name="file" /><br>
-        验证码：<input type="text" name="passport" /><br>
-        <input type="hidden" name="s" value={{s}} /><br>
-        <input type="submit" value="提交" />
-    </form>
-</center>
+<h2>欢迎来到柳铁一中1702班暑假约考提交系统！</h2>
+<!--<p>验证码：{{passport}}</p><br>-->
+<!-- <p>上传文件请用文件名标明姓名班级。</p> -->
+<form action="/" method="post" enctype="multipart/form-data">
+    组长名字：<input type="text" name="group_name" /><br>
+    自己名字：<input type="text" name="student_name" /><br>
+    学科选择：<select name="subject">
+    <option value="语文">语文</option>
+    <option value="数学">数学</option>
+    <option value="英语">英语</option>
+    <option value="物理">物理</option>
+    <option value="化学">化学</option>
+    <option value="生物">生物</option>
+</select><br>
+    分数：<input type="text" name="score" /><br>
+    反馈/吐槽(可填可不填)：<input type="text" name="feedback" /><br>
+    上传照片：<input type="file" name="file" /><br>
+    验证码：<img src="{{passport}}"><input type="text" name="passport" /><br>
+    <input type="submit" value="提交" />
+    <input type="hidden" name="s" value={{s}} /><br>
+</form>
 </body>
 </html>

@@ -32,7 +32,7 @@ def upload_file(key: str, filedata: io.BytesIO):
 
 def upload_file_threaded(key: str, filedata: io.BytesIO, join=False):
     t = threading.Thread(target=upload_file, args=(key, filedata))
-    t.setDaemon(True)
+    t.setDaemon(False)
     t.start()
     if join:
         t.join()
