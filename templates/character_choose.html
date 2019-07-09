@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>选择角色</title>
+</head>
+<body>
+<form action="/data" method="post" enctype="multipart/form-data">
+    请选择自己的角色：
+    <select name="character">
+        <option value="组长">组长</option>
+        <option value="班长">班长</option>
+        <option value="管理员">管理员</option>
+    </select>
+    <br>
+    输入管理密码(组长不用输入)：
+    <br>
+    <input type="text" name="password">
+    <br>
+    <input type="submit" value="确定"/>
+</form>
+</body>
+</html>

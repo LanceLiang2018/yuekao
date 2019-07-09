@@ -9,21 +9,52 @@ import pytz
 from upload import *
 from PIL import Image, ImageDraw, ImageFont
 from database import DataBase
+import textwrap
 
 app = Flask(__name__, static_folder='tmp')
+app.secret_key = 'LianGunJianPanDaChuLaiDeZiNiXInBuXin'
 db = DataBase()
+with open('loss.txt', 'r', encoding='utf8') as f:
+    captcha_data = f.read().split('\n\n')
+print(len(captcha_data))
 
 
 def captcha_get(string: str):
     empty = Image.new("RGB", (12, 12))
-    font = ImageFont.truetype("segoeprb.ttf", 15)
+    font_num = ImageFont.truetype("segoeprb.ttf", 120)
     empty_draw = ImageDraw.Draw(empty)
-    text_size = empty_draw.textsize(string, font=font)
+    text_size = empty_draw.textsize(string, font=font_num)
     # print(text_size)
     im = Image.new("RGB", text_size, color='white')
     draw = ImageDraw.Draw(im)
     draw.ink = 0
-    draw.text((0, 0), string, font=font)
+    draw.text((0, 0 - 32), string, font=font_num)
+
+    # 加入椒盐噪声
+    for i in range(500):
+        draw.point((randint(0, im.size[0] - 1), randint(0, im.size[1] - 1)), fill='white')
+        draw.point((randint(0, im.size[0] - 1), randint(0, im.size[1] - 1)), fill='black')
+
+    # 加上斜线
+    for i in range(30):
+        rand = (randint(0, im.size[0] - 1), randint(0, im.size[1] - 1))
+        rand2 = (randint(0, im.size[0] - 1), randint(0, im.size[1] - 1))
+        colors = ['white', 'black']
+        # print(rand)
+        draw.line((rand[0] * 2 - rand[0] // 2, rand[1] * 2 - rand[1] // 2,
+                   rand2[0] * 2 - rand2[0] // 2, rand2[1] * 2 - rand2[1] // 2),
+                  fill=colors[randint(0, 1)], width=randint(1, 3))
+
+    # 画上背景
+    rand_index = randint(0, len(captcha_data)-1)
+    loss = captcha_data[rand_index]
+    height = 32
+    width = im.size[0] // height
+    para = textwrap.wrap(loss, width=width)
+    font_char = ImageFont.truetype('FZLTCXHJW.TTF', height)
+    for line in para:
+        draw.text((0, para.index(line) * height), line, font=font_char)
+
     return im
 
 
@@ -48,6 +79,11 @@ g_debug = True
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
+
+        # 在主页删除角色状态
+        if 'character' in session:
+            session['character'] = None
+
         s, res = generate_pass_port()
         md5 = hashlib.md5()
         md5.update(res.encode())
@@ -108,15 +144,44 @@ def index():
         return '上传成功启动。请等待服务器CDN缓存(约30秒，视文件大小而定)'
 
 
-@app.route('/data')
+@app.route('/data', methods=["GET", "POST"])
 def show_data():
-    pass
+    form = request.form
+    if request.method == 'GET':
+        # 还没选择角色
+        if 'character' not in session:
+            return render_template('character_choose.html')
+        character = session['character']
+        if character not in ['组长', '班长', '管理员']:
+            session['character'] = None
+            return redirect('/data')
+        return 'OK'
+    if request.method == 'POST':
+        if 'password' in form and 'character' in form:
+            password = form['password']
+            character = form['character']
+            if password == 'ltyz13579':
+                session['character'] = character
+                return '<a href="/data">返回上一页</a>'
+            else:
+                return '密码错误！ <a href="/data">返回上一页</a>'
+        return '提交错误！ <a href="/data">返回上一页</a>'
+
+
+@app.route('/hello')
+def hello():
+    return render_template('data_show.html', labels=['A', 'B'], content=[[1, 2], [3, 4]])
 
 
 @app.route('/captcha/<string:cid>')
 def captcha_get_img(cid: str):
     # print(cid)
-    return redirect(url_for('static',filename='%s.jpg' % cid))
+    return redirect(url_for('static', filename='%s.jpg' % cid))
+
+
+@app.route('/res/<string:filename>')
+def res(filename: str):
+    return redirect(url_for('static', filename=filename))
 
 
 @app.route('/debug_clear')
@@ -133,7 +198,8 @@ def icon():
 if __name__ == '__main__':
     _li = os.listdir('tmp')
     for _i in _li:
-        if _i != '.nomedia':
+        # if _i != '.nomedia':
+        if '.jpg' in _i:
             os.remove('tmp/%s' % _i)
     app.run('0.0.0.0', port=os.getenv("PORT", "5000"), debug=False)
     # captcha_get("12 + 32").show()
