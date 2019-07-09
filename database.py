@@ -3,13 +3,14 @@ import hashlib
 import json
 import os
 import time
+import copy
 
 
 class DataBase:
     def __init__(self):
         self.file_db_init = "db_init.sql"
 
-        self.tables = ['raw_data', ]
+        self.tables = ['raw_data', 'student']
 
         # self.sql_type = "PostgreSQL"
         self.sql_types = {"SQLite": 0, "PostgreSQL": 1}
@@ -94,12 +95,38 @@ class DataBase:
                          (group_name, student, subject, score, file_url, feedback, submit_time))
 
     def get_raw_data(self):
-        data = self.new_execute_read("SELECT ")
+        data = self.new_execute_read("SELECT group_name, student, subject, score, file_url, feedback, submit_time"
+                                     "FROM raw_data")
+        return data
+
+    def update_student_info(self, csv_data: str):
+        lines = csv_data.split('\n')
+        results = []
+        unit = [0, '']
+        for line in lines:
+            # print(line)
+            if len(line) == 0 or ',' not in line:
+                continue
+            u = copy.deepcopy(unit)
+            try:
+                d1, d2 = line.split(',')
+                try:
+                    u[0] = int(d1)
+                except ValueError:
+                    u[0] = int(str(d1))
+                u[1] = str(d2)
+                results.append(u)
+            except ValueError:
+                return False
+        print(results)
+        return True
 
 
 if __name__ == '__main__':
     db = DataBase()
     db.db_init()
+    with open('StudentID2.csv', 'r', encoding='gbk') as f:
+        db.update_student_info(f.read())
 
 
 

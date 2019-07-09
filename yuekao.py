@@ -149,19 +149,27 @@ def show_data():
     form = request.form
     if request.method == 'GET':
         # 还没选择角色
-        if 'character' not in session:
-            return render_template('character_choose.html')
-        character = session['character']
-        if character not in ['组长', '班长', '管理员']:
-            session['character'] = None
-            return redirect('/data')
+        # if 'character' not in session:
+        #     return render_template('character_choose.html')
+        # character = session['character']
+        # if character not in ['组长', '班长', '管理员']:
+        #     session['character'] = None
+        #     return redirect('/data')
+        print(db.get_raw_data())
         return 'OK'
     if request.method == 'POST':
-        if 'password' in form and 'character' in form:
+        # if 'password' in form and 'character' in form:
+        #     password = form['password']
+        #     character = form['character']
+        #     if password == 'ltyz13579':
+        #         session['character'] = character
+        #         return '<a href="/data">返回上一页</a>'
+        #     else:
+        #         return '密码错误！ <a href="/data">返回上一页</a>'
+        if 'password' in form:
             password = form['password']
-            character = form['character']
             if password == 'ltyz13579':
-                session['character'] = character
+                session['login'] = True
                 return '<a href="/data">返回上一页</a>'
             else:
                 return '密码错误！ <a href="/data">返回上一页</a>'
