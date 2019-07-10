@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html class=" no-touchevents" lang="zh-cn"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta charset="UTF-8">
+	<meta content="IE=edge" http-equiv="X-UA-Compatible">
+	<meta content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no, width=device-width" name="viewport">
+	<meta name="theme-color" content="#4285f4">
+	<title>走火入膜</title>
+	<!-- css -->
+	<link href="mo/base.css" rel="stylesheet">
+	<link href="mo/project.css" rel="stylesheet">
+	<link href="mo/auth.css" rel="stylesheet">
+    <link href="mo/css.css" rel="stylesheet">
+	<script type="text/javascript" src="mo/fastjs.js"></script>
+	<script type="text/javascript">
+	   $webfont.load("body", "eb5d4a94806544cbb973a48a4baeaa5e", "AaFendudu");
+	   $webfont.load("code", "eb5d4a94806544cbb973a48a4baeaa5e", "AaFendudu");
+	   $webfont.load("h1", "eb5d4a94806544cbb973a48a4baeaa5e", "AaFendudu");
+	   $webfont.draw();
+	</script>
+
+	<!-- favicon -->
+
+	<!-- ... -->
+<style>
+.divcss5{ position:fixed; bottom:0;}
+</style><script src="mo/l.js" async=""></script><script charset="UTF-8" async="" src="mo/gettype.php"></script><script charset="UTF-8" async="" src="mo/fullpage.js"></script><script charset="UTF-8" src="mo/get.php"></script><link href="mo/style_https.css" rel="stylesheet"><link href="https://client.relay.crisp.chat/" rel="dns-prefetch" crossorigin=""><link href="https://settings.crisp.chat/" rel="preconnect" crossorigin=""><link href="https://client.crisp.chat/" rel="preconnect" crossorigin=""><link href="https://image.crisp.chat/" rel="preconnect" crossorigin=""><script src="mo/client.js" type="text/javascript" async=""></script><link href="mo/client_default.css" type="text/css" rel="stylesheet"></head>
+  
+<body class="page-brand">
+	
+<literal><script type="text/javascript"> window.$crisp=[];window.CRISP_WEBSITE_ID="152cf9ea-5ecf-4edc-80c8-010897e66ccd";$crisp.push(["set", "user:email", ""]);(function(){ d=document;s=d.createElement("script"); s.src="https://client.crisp.chat/l.js"; s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})(); </script></literal>
+
+
+<div class="authpage">
+    <div class="container">
+        <form action="javascript:void(0);" method="POST">
+            <div class="auth-main auth-row auth-col-one">
+                <div class="auth-top auth-row">
+                    <a class="boardtop-left" href="https://xn--m80a.xyz/">
+                        <div>首 页</div>
+                    </a>
+                    <div class="auth-logo">
+                        <img src="mo/logo.png" alt="">
+                    </div>
+                    <a href="https://xn--m80a.xyz/auth/register" class="boardtop-right">
+                        <div>注 册</div>
+                    </a>
+                </div>
+                <div class="auth-row">
+                    <div class="form-group-label auth-row row-login">
+                        <label class="floating-label" for="email">邮箱</label>
+                        <input class="form-control maxwidth-auth" id="email" type="text" name="Email">
+                    </div>
+                </div>
+                <div class="auth-row">
+                    <div class="form-group-label auth-row row-login">
+                        <label class="floating-label" for="passwd">密码</label>
+                        <input class="form-control maxwidth-auth" id="passwd" type="password" name="Password">
+                    </div>
+                </div>
+                <div class="auth-row">
+                    <div class="form-group-label auth-row row-login">
+                        <label class="floating-label" for="code">两步验证码（未设置请忽略）</label>
+                        <input class="form-control maxwidth-auth" id="code" type="text" name="Code">
+                    </div>
+                </div>
+                                
+                <div class="btn-auth auth-row">
+                    <button id="login" type="submit" class="btn btn-block btn-brand waves-attach waves-light waves-effect">
+                        确认登录
+                    </button>
+                </div>
+                <div class="auth-help auth-row">
+                    <div class="auth-help-table auth-row">
+                        <div class="checkbox checkbox-adv">
+                            <label for="remember_me">
+                                <input class="access-hide" value="week" id="remember_me" name="remember_me" type="checkbox">记住我
+                                <span class="checkbox-circle"></span><span class="checkbox-circle-check"></span><span class="checkbox-circle-icon icon">done</span>
+                            </label>
+                        </div>
+                        <a href="https://xn--m80a.xyz/password/reset">忘记密码？</a>
+                    </div>
+                </div>
+                <div class="auth-bottom auth-row">
+                    <p>这里是页脚</p>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+<div aria-hidden="true" class="modal modal-va-middle fade" id="result" role="dialog" tabindex="-1">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-inner">
+				<p class="h5 margin-top-sm text-black-hint" id="msg"></p>
+			</div>
+			<div class="modal-footer">
+				<p class="text-right"><button class="btn btn-flat btn-brand-accent waves-attach waves-effect" data-dismiss="modal" type="button" id="result_ok">知道了</button></p>
+			</div>
+		</div>
+	</div>
+</div>
+<!--
+I'm glad you use this theme, the development is no so easy, I hope you can keep the copyright, I will thank you so much.
+It will not impact the appearance and can give developers a lot of support :)
+
+很高兴您使用并喜欢该主题，开发不易 十分谢谢与希望您可以保留一下版权声明。它不会影响美观并可以给开发者很大的支持和动力。 :)
+-->    
+<footer class="ui-footer">
+	<div class="container">
+		<marquee>©2019 鸽研部 <a href="/staff">STAFF</a></marquee>
+	</div>
+</footer>
+	<!-- js -->
+	<script src="mo/jquery2.1"></script>
+    	<script src="mo/gt.js"></script>
+    	<script src="mo/base.js"></script>
+	<script src="mo/project.js"></script>
+
+<div class="crisp-client"><div class="crisp-1o7uamv"><div class="crisp-1qz76wn"><style type="text/css">.crisp-client .crisp-1rjpbb7 .crisp-12w1xmh,
+.crisp-client .crisp-1rjpbb7 .crisp-poqhnx:hover {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-1wiroug,
+.crisp-client .crisp-1rjpbb7 .crisp-ao27ue:hover {
+  color: #A0073C !important;
+  -webkit-text-fill-color: #A0073C !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-6mlwlm,
+.crisp-client .crisp-1rjpbb7 .crisp-q5z06s:hover {
+  color: #CE1454 !important;
+  -webkit-text-fill-color: #CE1454 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-wcida4,
+.crisp-client .crisp-1rjpbb7 .crisp-o6w0yc:hover {
+  color: #F01D65 !important;
+  -webkit-text-fill-color: #F01D65 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-pusm34 {
+  background-color: #FFFFFF !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-bdhv0t {
+  background-color: #A0073C !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-9o0cq7 {
+  background-color: #DB165A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-ws3gf1,
+.crisp-client .crisp-1rjpbb7 .crisp-13h0akn:before,
+.crisp-client .crisp-1rjpbb7 .crisp-13h0akn:after {
+  background-color: #F01D65 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-1gr5ak3 {
+  background-color: #F7F2F2 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-145mbcr,
+.crisp-client .crisp-1rjpbb7 .crisp-1jrqqbm:hover {
+  background-color: #F9F9F9 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-17f70m7 {
+  background-image: linear-gradient(125deg, #F01D65 -10%, #A0073C 100%) !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-111u58f,
+.crisp-client .crisp-1rjpbb7 .crisp-y1nqlk:hover {
+  border-color: #FFFFFF !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-14u434g {
+  border-color: rgba(160, 7, 60, 0.175) !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-k6ym6q,
+.crisp-client .crisp-1rjpbb7 .crisp-1hadq69:hover,
+.crisp-client .crisp-1rjpbb7 .crisp-1kqjjm4:before,
+.crisp-client .crisp-1rjpbb7 .crisp-1kqjjm4:after {
+  border-color: #F01D65 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-1n0zdj7 {
+  border-color: rgba(240, 29, 101, 0.15) !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-rdu43e {
+  border-top-color: #F01D65 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-ogcg7k,
+.crisp-client .crisp-1rjpbb7 .crisp-1mnx9b2:hover {
+  border-color: #F7F2F2 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-11uxe11:placeholder {
+  color: #F26C9A !important;
+  -webkit-text-fill-color: #F26C9A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-11uxe11:-moz-placeholder {
+  color: #F26C9A !important;
+  -webkit-text-fill-color: #F26C9A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-11uxe11::-moz-placeholder {
+  color: #F26C9A !important;
+  -webkit-text-fill-color: #F26C9A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-11uxe11:-ms-input-placeholder {
+  color: #F26C9A !important;
+  -webkit-text-fill-color: #F26C9A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-11uxe11::-webkit-input-placeholder {
+  color: #F26C9A !important;
+  -webkit-text-fill-color: #F26C9A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-14ixsrp:placeholder {
+  color: #F26C9A !important;
+  -webkit-text-fill-color: #F26C9A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-14ixsrp:-moz-placeholder {
+  color: #F26C9A !important;
+  -webkit-text-fill-color: #F26C9A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-14ixsrp::-moz-placeholder {
+  color: #F26C9A !important;
+  -webkit-text-fill-color: #F26C9A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-14ixsrp:-ms-input-placeholder {
+  color: #F26C9A !important;
+  -webkit-text-fill-color: #F26C9A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-14ixsrp::-webkit-input-placeholder {
+  color: #F26C9A !important;
+  -webkit-text-fill-color: #F26C9A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-gjhthi,
+.crisp-client .crisp-1rjpbb7 .crisp-1t1dtpc:hover,
+.crisp-client .crisp-1rjpbb7 .crisp-gjhthi:hover,
+.crisp-client .crisp-1rjpbb7 .crisp-1t1dtpc:active,
+.crisp-client .crisp-1rjpbb7 .crisp-gjhthi:active,
+.crisp-client .crisp-1rjpbb7 .crisp-1v3kwn:hover .crisp-oc2kqi,
+.crisp-client .crisp-1rjpbb7 .crisp-1v3kwn .crisp-oc2kqi:active {
+  background: #A0073C !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-1dgibgx,
+.crisp-client .crisp-1rjpbb7 .crisp-1r2x6vr:hover {
+  background: #CE1454 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-1dgibgx:hover,
+.crisp-client .crisp-1rjpbb7 .crisp-1r2x6vr:active {
+  background: #B3124A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-1dgibgx:active {
+  background: #A0073C !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-27o9vm:hover .crisp-1ekhg1c {
+  background: #CE1454 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-27o9vm .crisp-1ekhg1c:active {
+  background: #B3124A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-ox3dbf,
+.crisp-client .crisp-1rjpbb7 .crisp-1fmeyoi[data-active="true"] {
+  background: #F01D65 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-ox3dbf:hover {
+  background: #DB165A !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-ox3dbf:active {
+  background: #CE1454 !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-k5ll1j::-moz-selection,
+.crisp-client .crisp-1rjpbb7 .crisp-k5ll1j *::-moz-selection {
+  background-color: #FFE0EB !important;
+}
+
+.crisp-client .crisp-1rjpbb7 .crisp-k5ll1j::selection,
+.crisp-client .crisp-1rjpbb7 .crisp-k5ll1j *::selection {
+  background-color: #FFE0EB !important;
+}</style></div><div class="crisp-1nasccw"><style type="text/css">.crisp-client .crisp-1rjpbb7 {
+  z-index: 1000000;
+}
+</style></div></div><div id="crisp-chatbox" dir="ltr" translate="no" data-blocked="false" data-lock-maximized="false" data-last-operator-face="false" data-availability-tooltip="true" data-hide-vacation="false" data-hide-on-away="true" data-hide-on-mobile="true" data-position-reverse="false" data-full-view="true" data-small-view="true" data-large-view="false" data-availability="away" data-is-activity-ongoing="false" data-was-availability-online="false" data-has-local-messages="false" class="crisp-1rjpbb7" lang="zh"><div class="crisp-1rf4xdh crisp-k5ll1j"><a data-maximized="false" data-is-failure="false" href="#!" class="crisp-kquevr" data-cshid="b9a1ef9f-2587-97ae-9ff9-6efee56155d3"><span class="crisp-1059tj2"><span data-id="general_entice" data-with-helpdesk="false" data-is-concealed="false" class="crisp-1xaupiq"><span class="crisp-1sa0919"><span class="crisp-1s66m5e crisp-9dgo7z"><span class="crisp-yzclt"><span class="crisp-5me80a"><span class="crisp-bz13r8 crisp-i1yn7v"></span><span data-has-avatar="true" class="crisp-1sd4dmd"><span class="crisp-191rfs5"><span class="crisp-pkd0me crisp-13qutdl">有疑问吗？联系我们！</span><span data-id="online" class="crisp-h99wdo crisp-9dgo7z">在线</span><span data-id="away" class="crisp-h99wdo crisp-9dgo7z">没有支持</span></span><span class="crisp-z83vpo"><span class="crisp-bjk43g crisp-4oo1n4"><span style="background-image: url('https://image.crisp.chat/process/thumbnail/?url=https%3A%2F%2Fstorage.crisp.chat%2Fusers%2Favatar%2Foperator%2F49218e3a-8b50-45ec-87bc-7eb39a2aaa8c%2F3a4536b9-76c6-47bc-9c46-802337e67407.jpg&amp;width=240&amp;height=240&amp;1531896978192') !important;" class="crisp-2tz7y crisp-1mh9nm6"></span></span></span></span></span></span><span data-when="online" class="crisp-a1mko8"><span class="crisp-vz5ota crisp-1jrqqbm"><span class="crisp-4snher"><span class="crisp-rvg3pe crisp-wcida4 crisp-13qutdl">与 走火入膜 团队聊天</span></span></span></span><span data-when="away" class="crisp-a1mko8"><span class="crisp-vz5ota crisp-1jrqqbm"><span class="crisp-4snher"><span class="crisp-rvg3pe crisp-wcida4 crisp-13qutdl">与 走火入膜 团队聊天</span></span></span></span></span></span></span></span><span class="crisp-x94m06 crisp-ws3gf1"><span data-id="chat_closed" class="crisp-16qgsyi"><span class="crisp-1t2kwsy"><span class="crisp-174tqf9 crisp-1e8tjtx"></span></span><span data-is-ongoing="false" class="crisp-101bp3x"></span></span></span></a></div></div></div></body></html>

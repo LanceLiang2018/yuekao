@@ -99,7 +99,7 @@ class DataBase:
                                      "FROM raw_data")
         return data
 
-    def update_student_info(self, csv_data: str):
+    def parse_csv_data(self, csv_data: str):
         lines = csv_data.split('\n')
         results = []
         unit = [0, '']
@@ -117,9 +117,15 @@ class DataBase:
                 u[1] = str(d2)
                 results.append(u)
             except ValueError:
-                return False
-        print(results)
-        return True
+                return None
+        # print(results)
+        return results
+
+    def update_student_info(self, csv_data: str):
+        data = self.parse_csv_data(csv_data)
+        if data is None:
+            return None
+        self.new_execute_write("DROP TABLE IF EXISTS")
 
 
 if __name__ == '__main__':

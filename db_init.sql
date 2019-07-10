@@ -7,3 +7,8 @@ CREATE TABLE raw_data (
     feedback VARCHAR(4096),
     submit_time INT
 );
+
+CREATE TABLE student (
+    id INT,
+    name VARCHAR(64)
+);
