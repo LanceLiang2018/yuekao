@@ -5,10 +5,11 @@ CREATE TABLE raw_data (
     score DOUBLE,
     file_url VARCHAR(512),
     feedback VARCHAR(4096),
-    submit_time INT
+    submit_time INT,
+    submit_date INT
 );
 
 CREATE TABLE student (
-    id INT,
+    id INT primary key,
     name VARCHAR(64)
 );

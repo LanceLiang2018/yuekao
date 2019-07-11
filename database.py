@@ -38,7 +38,7 @@ class DataBase:
     def new_execute_read(self, string: str, args=()):
         cursor = self.cursor_get()
         cursor.execute(self.v(string), args)
-        data = cursor.fetch_all()
+        data = cursor.fetchall()
         self.cursor_finish(cursor)
         return data
 
@@ -90,13 +90,39 @@ class DataBase:
         self.cursor_finish(cursor)
 
     def new_submit(self, group_name, student, subject, score, file_url, feedback, submit_time):
-        self.new_execute_write("INSERT INTO raw_data (group_name, student, subject, score, file_url, "
-                         "feedback, submit_time) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                         (group_name, student, subject, score, file_url, feedback, submit_time))
+        # self.new_execute_write("REPLACE INTO raw_data (group_name, student, subject, score, file_url, "
+        #                  "feedback, submit_time) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        #                  (group_name, student, subject, score, file_url, feedback, submit_time))
+        # self.new_execute_write("UPDATE raw_data SET group_name = %s, student = %s, subject = %s, score = %s, "
+        #                        "file_url = %s, feedback = %s, submit_time = %s WHERE student = %s AND subject = %s",
+        #                        (group_name, student, subject, score, file_url, feedback, submit_time, student, subject))
+#         sql_string = '''IF EXISTS (SELECT 1 FROM raw_data WHERE student = %s AND subject = %s)
+# UPDATE raw_data SET group_name = %s, student = %s, subject = %s, score = %s, file_url = %s, feedback = %s, submit_time = %s
+# ELSE
+# INSERT INTO raw_data (group_name, student, subject, score, file_url, feedback, submit_time) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+# '''
+#         sql_data = (student, subject,
+#                     group_name, student, subject, score, file_url, feedback, submit_time,
+#                     group_name, student, subject, score, file_url, feedback, submit_time)
+#         self.new_execute_write(sql_string, sql_data)
+        submit_time_date = time.localtime(submit_time).tm_mday
+        data = self.new_execute_read("SELECT 1 FROM raw_data WHERE student = %s AND subject = %s AND submit_date = %s", (student, subject, submit_time_date))
+        if len(data) != 0:
+            self.new_execute_write("UPDATE raw_data SET group_name = %s, student = %s, subject = %s, score = %s, "
+                                   "file_url = %s, feedback = %s, submit_time = %s WHERE student = %s AND subject = %s AND submit_date = %s",
+                                   (group_name, student, subject, score, file_url, feedback, submit_time, student, subject, submit_time_date))
+        else:
+            self.new_execute_write("INSERT INTO raw_data (group_name, student, subject, score, file_url, "
+                             "feedback, submit_time, submit_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                             (group_name, student, subject, score, file_url, feedback, submit_time, submit_time_date))
 
     def get_raw_data(self):
-        data = self.new_execute_read("SELECT group_name, student, subject, score, file_url, feedback, submit_time"
+        data = self.new_execute_read("SELECT group_name, student, subject, score, file_url, feedback, submit_time "
                                      "FROM raw_data")
+        return data
+
+    def get_students_data(self):
+        data = self.new_execute_read("SELECT id, name FROM student")
         return data
 
     def parse_csv_data(self, csv_data: str):
@@ -124,8 +150,12 @@ class DataBase:
     def update_student_info(self, csv_data: str):
         data = self.parse_csv_data(csv_data)
         if data is None:
-            return None
-        self.new_execute_write("DROP TABLE IF EXISTS")
+            return False
+        self.new_execute_write("DELETE FROM student")
+        # print(data)
+        for line in data:
+            self.new_execute_write("INSERT INTO student (id, name) VALUES (%s, %s)", (line[0], line[1]))
+        return True
 
 
 if __name__ == '__main__':
@@ -133,6 +163,10 @@ if __name__ == '__main__':
     db.db_init()
     with open('StudentID2.csv', 'r', encoding='gbk') as f:
         db.update_student_info(f.read())
-
+    print(db.get_students_data())
+    for i in range(10):
+        db.new_submit('a', 'b', 'c', 100.5, '', '', int(time.time()))
+    db.new_submit('a', 'b', 'd', 10.5, '', '', int(time.time()))
+    print(db.get_raw_data())
 
 

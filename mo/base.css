@@ -73,7 +73,7 @@ a,body {
 }
 
 body {
-    background-image: url(/images/bg.png);
+    background-image: url(mo/bg.jpg);
     background-attachment: scroll;
     width: 100%;
     background-repeat: no-repeat;
