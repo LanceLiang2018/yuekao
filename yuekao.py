@@ -192,6 +192,11 @@ def res(filename: str):
     return redirect(url_for('static', filename=filename))
 
 
+@app.route('/mo_test')
+def mo_test():
+    return render_template('mo.html')
+
+
 @app.route('/debug_clear')
 def clear_all():
     db.db_init()
