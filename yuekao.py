@@ -72,7 +72,6 @@ def generate_pass_port(limit=100):
     return s, res
 
 
-file_path = './files/'
 g_debug = True
 
 
@@ -89,8 +88,8 @@ def index():
         md5.update(res.encode())
         p = md5.hexdigest()
         # print('p=', p)
-        captcha_get(s).save('tmp/%s.jpg' % p)
-        return render_template('index.html', passport='/captcha/%s' % p, s=p)
+        captcha_get(s).save('tmp/captcha/%s.jpg' % p)
+        return render_template('mo.html', passport='/captcha/%s' % p, s=p)
     if request.method == 'POST':
         form = request.form
         if not g_debug:
@@ -184,7 +183,7 @@ def hello():
 @app.route('/captcha/<string:cid>')
 def captcha_get_img(cid: str):
     # print(cid)
-    return redirect(url_for('static', filename='%s.jpg' % cid))
+    return redirect(url_for('static', filename='captcha/%s.jpg' % cid))
 
 
 @app.route('/res/<string:filename>')
@@ -209,11 +208,11 @@ def icon():
 
 
 if __name__ == '__main__':
-    _li = os.listdir('tmp')
+    _li = os.listdir('tmp/captcha')
     for _i in _li:
         # if _i != '.nomedia':
         if '.jpg' in _i:
-            os.remove('tmp/%s' % _i)
+            os.remove('tmp/captcha/%s' % _i)
     app.run('0.0.0.0', port=os.getenv("PORT", "5000"), debug=False)
     # captcha_get("12 + 32").show()
 

@@ -31,18 +31,18 @@
 <body class="page-brand" background="/tmp/bg.jpg">
 	
 <literal><script type="text/javascript"> window.$crisp=[];window.CRISP_WEBSITE_ID="152cf9ea-5ecf-4edc-80c8-010897e66ccd";$crisp.push(["set", "user:email", ""]);(function(){ d=document;s=d.createElement("script"); s.src="https://client.crisp.chat/l.js"; s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})(); </script></literal>
-
+<h2 align="center" style="color:rgb(84,179,245)">欢迎来到柳铁一中1702班暑假约考提交系统！</h2>
 
 <div class="authpage">
     <div class="container">
-        <form action="javascript:void(0);" method="POST">
+        <form action="/" method="post" enctype="multipart/form-data">
             <div class="auth-main auth-row auth-col-one">
                 <div class="auth-top auth-row">
                     <a class="boardtop-left" href="/about">
                         <div>关 于</div>
                     </a>
                     <div class="auth-logo">
-                        <img src="/tmp/icon.jpg" alt="">
+                        <img src="/tmp/icon.png" alt="">
                     </div>
                     <a href="/help" class="boardtop-right">
                         <div>帮 助</div>
@@ -50,38 +50,61 @@
                 </div>
                 <div class="auth-row">
                     <div class="form-group-label auth-row row-login">
-                        <label class="floating-label" for="email">邮箱</label>
-                        <input class="form-control maxwidth-auth" id="email" type="text" name="Email">
+                        <label class="floating-label" for="group_name">组长名字</label>
+                        <input class="form-control maxwidth-auth" id="group_name" type="text" name="group_name">
                     </div>
                 </div>
                 <div class="auth-row">
                     <div class="form-group-label auth-row row-login">
-                        <label class="floating-label" for="passwd">密码</label>
-                        <input class="form-control maxwidth-auth" id="passwd" type="password" name="Password">
+                        <label class="floating-label" for="student_name">自己名字</label>
+                        <input class="form-control maxwidth-auth" id="student_name" type="text" name="student_name">
                     </div>
                 </div>
                 <div class="auth-row">
                     <div class="form-group-label auth-row row-login">
-                        <label class="floating-label" for="code">两步验证码（未设置请忽略）</label>
-                        <input class="form-control maxwidth-auth" id="code" type="text" name="Code">
+                        <label class="floating-label" for="score">分数</label>
+                        <input class="form-control maxwidth-auth" id="score" type="text" name="score">
                     </div>
                 </div>
-                                
+                <div class="auth-row">
+                    <div class="form-group-label auth-row row-login">
+                        <label class="floating-label" for="feedback">反馈/吐槽(可填可不填)</label>
+                        <input class="form-control maxwidth-auth" id="feedback" type="text" name="feedback">
+                    </div>
+                </div>
+                <div class="auth-row">
+                    <div class="form-group-label auth-row row-login">
+                        上传照片：<input type="file" name="file" /><br>
+                    </div>
+                </div>
+                <div class="auth-row">
+                    <div class="form-group-label auth-row row-login">
+                        <img width="348px" src="{{passport}}"><br>
+                    </div>
+                </div>
+                <div class="auth-row">
+                    <div class="form-group-label auth-row row-login">
+                        <label class="floating-label" for="passport">验证码</label>
+                        <input class="form-control maxwidth-auth" id="passport" type="text" name="passport">
+                    </div>
+                </div>
+
                 <div class="btn-auth auth-row">
                     <button id="login" type="submit" class="btn btn-block btn-brand waves-attach waves-light waves-effect">
-                        确认登录
+                        提交
                     </button>
                 </div>
+                <input type="hidden" name="s" value={{s}} /><br>
                 <div class="auth-help auth-row">
-                    <div class="auth-help-table auth-row">
-                        <div class="checkbox checkbox-adv">
-                            <label for="remember_me">
-                                <input class="access-hide" value="week" id="remember_me" name="remember_me" type="checkbox">记住我
-                                <span class="checkbox-circle"></span><span class="checkbox-circle-check"></span><span class="checkbox-circle-icon icon">done</span>
-                            </label>
-                        </div>
-                        <a href="https://xn--m80a.xyz/password/reset">忘记密码？</a>
-                    </div>
+<!--                    <div class="auth-help-table auth-row">-->
+<!--                        <div class="checkbox checkbox-adv">-->
+<!--                            <label for="remember_me">-->
+<!--                                <input class="access-hide" value="week" id="remember_me" name="remember_me" type="checkbox">记住我-->
+<!--                                <span class="checkbox-circle"></span><span class="checkbox-circle-check"></span><span class="checkbox-circle-icon icon">done</span>-->
+<!--                            </label>-->
+<!--                        </div>-->
+<!--                        <a href="https://xn&#45;&#45;m80a.xyz/password/reset">忘记密码？</a>-->
+<!--                    </div>-->
                 </div>
                 <div class="auth-bottom auth-row">
                     <p>这里是页脚</p>
