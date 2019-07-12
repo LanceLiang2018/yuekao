@@ -50,6 +50,12 @@ def captcha_get(string: str):
     loss = captcha_data[rand_index]
     height = 32
     width = im.size[0] // height
+    length = height * width // 32 * 32
+    while length > len(loss):
+        rand_index += 1
+        if rand_index >= len(captcha_data) - 1:
+            rand_index = 0
+        loss += '\n' + captcha_data[rand_index]
     para = textwrap.wrap(loss, width=width)
     font_char = ImageFont.truetype('FZLTCXHJW.TTF', height)
     for line in para:
@@ -73,6 +79,7 @@ def generate_pass_port(limit=100):
 
 
 g_debug = True
+cdn = 'https://cdn-1254016670.cos.ap-chengdu.myqcloud.com/yuekao'
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -89,7 +96,8 @@ def index():
         p = md5.hexdigest()
         # print('p=', p)
         captcha_get(s).save('tmp/captcha/%s.jpg' % p)
-        return render_template('mo.html', passport='/captcha/%s' % p, s=p)
+        return render_template('mo.html', passport='/captcha/%s' % p, s=p,
+                               cdn=cdn)
     if request.method == 'POST':
         form = request.form
         if not g_debug:
@@ -154,8 +162,10 @@ def show_data():
         # if character not in ['组长', '班长', '管理员']:
         #     session['character'] = None
         #     return redirect('/data')
+        if g_debug is False and ('login' not in session or session['login'] is False):
+            return render_template('input_password.html', cdn=cdn)
         print(db.get_raw_data())
-        return 'OK'
+        return render_template('helloworld.html')
     if request.method == 'POST':
         # if 'password' in form and 'character' in form:
         #     password = form['password']
