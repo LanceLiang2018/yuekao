@@ -13,6 +13,7 @@ import copy
 import textwrap
 import xlrd
 import csv
+import psycopg2
 
 
 app = Flask(__name__, static_folder='tmp')
@@ -469,7 +470,10 @@ def admin():
 def clear_all():
     if 'login' not in session or session['login'] is not True:
         return redirect('/admin')
-    db.db_backup()
+    try:
+        db.db_backup()
+    except psycopg2.errors.UndefinedTable as e:
+        return make_alert('错误。%s' % str(e))
     db.db_init()
     return make_alert('OK.')
 
