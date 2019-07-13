@@ -37,7 +37,11 @@ class DataBase:
 
     def new_execute_read(self, string: str, args=()):
         cursor = self.cursor_get()
-        cursor.execute(self.v(string), args)
+        # print(self.v(string), args)
+        if len(args) == 0:
+            cursor.execute(self.v(string))
+        else:
+            cursor.execute(self.v(string), args)
         data = cursor.fetchall()
         self.cursor_finish(cursor)
         return data

@@ -273,7 +273,7 @@ def show_data():
         else:
             limit = "subject LIKE '%s' AND group_name LIKE '%s'" % (subject_to_limit, group_name_to_limit)
 
-        # print(limit)
+        print(limit)
 
         # if g_debug is False and ('login' not in session or session['login'] is False):
         #     return render_template('input_password.html', cdn=cdn)
