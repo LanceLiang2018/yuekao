@@ -89,7 +89,7 @@ class DataBase:
                     print('Error:\n', s, 'Exception:\n', e)
         self.cursor_finish(cursor)
 
-    def new_submit(self, group_name, student, subject, score, file_url, feedback, submit_time):
+    def new_submit(self, group_name, student, student_id, subject, score, file_url, feedback, submit_time):
         # self.new_execute_write("REPLACE INTO raw_data (group_name, student, subject, score, file_url, "
         #                  "feedback, submit_time) VALUES (%s, %s, %s, %s, %s, %s, %s)",
         #                  (group_name, student, subject, score, file_url, feedback, submit_time))
@@ -109,21 +109,45 @@ class DataBase:
         data = self.new_execute_read("SELECT 1 FROM raw_data WHERE student = %s AND subject = %s AND submit_date = %s", (student, subject, submit_time_date))
         if len(data) != 0:
             self.new_execute_write("UPDATE raw_data SET group_name = %s, student = %s, subject = %s, score = %s, "
-                                   "file_url = %s, feedback = %s, submit_time = %s WHERE student = %s AND subject = %s AND submit_date = %s",
-                                   (group_name, student, subject, score, file_url, feedback, submit_time, student, subject, submit_time_date))
+                                   "file_url = %s, feedback = %s, submit_time = %s, student_id = %s "
+                                   "WHERE student = %s AND subject = %s AND submit_date = %s",
+                                   (group_name, student, subject, score, file_url, feedback, submit_time, student,
+                                    student_id, subject, submit_time_date))
         else:
             self.new_execute_write("INSERT INTO raw_data (group_name, student, subject, score, file_url, "
-                             "feedback, submit_time, submit_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                             (group_name, student, subject, score, file_url, feedback, submit_time, submit_time_date))
+                             "feedback, submit_time, submit_date, student_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                             (group_name, student, subject, score, file_url, feedback, submit_time, submit_time_date, student_id))
 
-    def get_raw_data(self):
-        data = self.new_execute_read("SELECT group_name, student, subject, score, file_url, feedback, submit_time "
-                                     "FROM raw_data")
+    def get_raw_data(self, limit_str=''):
+        sql_string = "SELECT group_name, student, student_id, subject, score, " \
+                     "file_url, feedback, submit_time FROM raw_data"
+        if limit_str != '':
+            sql_string += ' WHERE %s' % limit_str
+        data = self.new_execute_read(sql_string)
         return data
 
     def get_students_data(self):
         data = self.new_execute_read("SELECT id, name FROM student")
         return data
+
+    def get_students_group(self, student_name: str):
+        data = self.new_execute_read("SELECT group_name FROM raw_data WHERE student = %s", (student_name, ))
+        return data
+
+    def get_group_list(self):
+        data = self.new_execute_read("SELECT group_name FROM raw_data")
+        result = []
+        for d in data:
+            if d[0] not in result:
+                result.append(d[0])
+        return result
+
+    def check_student_info(self, name: str, student_id: int):
+        data = self.new_execute_read("SELECT 1 FROM student WHERE id = %s AND name = %s", (student_id, name))
+        if len(data) == 0:
+            print(data)
+            return False
+        return True
 
     def parse_csv_data(self, csv_data: str):
         lines = csv_data.split('\n')
@@ -141,6 +165,7 @@ class DataBase:
                 except ValueError:
                     u[0] = int(str(d1))
                 u[1] = str(d2)
+                u[1] = u[1].replace(' ', '')
                 results.append(u)
             except ValueError:
                 return None
@@ -161,9 +186,9 @@ class DataBase:
 if __name__ == '__main__':
     db = DataBase()
     db.db_init()
-    # with open('StudentID2.csv', 'r', encoding='gbk') as f:
-    #     db.update_student_info(f.read())
-    # print(db.get_students_data())
+    with open('StudentID2.csv', 'r', encoding='gbk') as f:
+        db.update_student_info(f.read())
+    print(db.get_students_data())
     # for i in range(10):
     #     db.new_submit('a', 'b', 'c', 100.5, '', '', int(time.time()))
     # db.new_submit('a', 'b', 'd', 10.5, '', '', int(time.time()))

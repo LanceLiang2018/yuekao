@@ -5,16 +5,89 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/res/bootstrap.min.css">
+    <link rel="stylesheet" href="{{cdn}}/bootstrap.min.css">
     <title>数据展示</title>
 </head>
 <body>
-<a href="/">←回首页</a>    <a href="/download">下载该数据</a><br>
     <div class="row">
         <div class="col-md-6 col-sm-12 col-xs-12">
             <div class="panel panel-default">
             <div class="panel-heading"><h3>数据展示</h3></div>
-            <div class="panel-body">
+                <a href="/">←回首页</a>&nbsp;
+                <a href="{{download_url}}">下载该数据</a>&nbsp;
+                <a href="/data?conclude=True">查看总结</a>&nbsp;
+                <a href="/data?conclude=False">查看提交情况</a><br>
+                <div class="screen"><h4>数据筛选</h4></div>
+                <form action="/data" method="GET">
+                    选择学科:<select name="subject">
+                    {% for subject in ['all', '语文', '数学', '英语', '物理', '化学', '生物'] %}
+                    {% if selected_subject == subject %}
+                    <option value="{{subject}}" selected="selected">{{subject}}</option>
+                    {% else %}
+                    <option value="{{subject}}">{{subject}}</option>
+                    {% endif %}
+                    {% endfor %}
+<!--                    <option value="语文">语文</option>-->
+<!--                    <option value="数学">数学</option>-->
+<!--                    <option value="英语">英语</option>-->
+<!--                    <option value="物理">物理</option>-->
+<!--                    <option value="化学">化学</option>-->
+<!--                    <option value="生物">生物</option>-->
+                </select>&nbsp;<br>
+                    选择开始日期:<select name="start_month">
+                    <option value="all">未选择</option>
+                    {% for month in range(1, 12) %}
+                    {% if month == start_month %}
+                    <option value="{{month}}" selected="selected">{{month}}</option>
+                    {% else %}
+                    <option value="{{month}}">{{month}}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>月
+                    <select name="start_date">
+                    <option value="all">未选择</option>
+                    {% for date in range(1, 30) %}
+                    {% if date == start_date %}
+                    <option value="{{date}}" selected="selected">{{date}}</option>
+                    {% else %}
+                    <option value="{{date}}">{{date}}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>日
+                    &nbsp;选择结束日期:<select name="end_month">
+                    <option value="all">未选择</option>
+                    {% for month in range(1, 12) %}
+                    {% if month == end_month %}
+                    <option value="{{month}}" selected="selected">{{month}}</option>
+                    {% else %}
+                    <option value="{{month}}">{{month}}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>月
+                    <select name="end_date">
+                    <option value="all">未选择</option>
+                    {% for date in range(1, 30) %}
+                    {% if date == end_date %}
+                    <option value="{{date}}" selected="selected">{{date}}</option>
+                    {% else %}
+                    <option value="{{date}}">{{date}}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>日&nbsp;<br>
+                    选择组长:<select name="group_name">
+                    <option value="all">未选择</option>
+                    {% for group_name in group_names %}
+                    {% if selected_group_name == group_name %}
+                    <option value="{{group_name}}" selected="selected">{{group_name}}</option>
+                    {% else %}
+                    <option value="{{group_name}}">{{group_name}}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select><br>
+                    <input type="hidden" name="conclude" value={{conclude}} />
+                    <input type="submit" value="确定" />
+                </form>
+            <div class="panel-body" style="width:1500px">
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered table-hover">
                         <thead>
@@ -36,8 +109,8 @@
         </div>
     </div>
     <!-- Optional JavaScript --><!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="/res/jquery-3.3.1.slim.min.js"></script>
-    <script src="/res/popper.min.js"></script>
-    <script src="/res/bootstrap.min.js"></script>
+    <script src="{{cdn}}/jquery-3.3.1.slim.min.js"></script>
+    <script src="{{cdn}}/popper.min.js"></script>
+    <script src="{{cdn}}/bootstrap.min.js"></script>
 </body>
 </html>

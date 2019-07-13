@@ -9,6 +9,7 @@ import pytz
 from upload import *
 from PIL import Image, ImageDraw, ImageFont
 from database import DataBase
+import copy
 import textwrap
 
 app = Flask(__name__, static_folder='tmp')
@@ -17,6 +18,13 @@ db = DataBase()
 with open('loss.txt', 'r', encoding='utf8') as f:
     captcha_data = f.read().split('\n\n')
 print(len(captcha_data))
+
+
+def local2utc(local_st):
+    '''本地时间转UTC时间（-8:00）'''
+    time_struct = time.mktime(local_st.timetuple())
+    utc_st = datetime.utcfromtimestamp(time_struct)
+    return utc_st
 
 
 def captcha_get(string: str):
@@ -78,7 +86,12 @@ def generate_pass_port(limit=100):
     return s, res
 
 
-g_debug = True
+def make_alert(message: str):
+    return "<script>alert('%s');</script>" % message
+
+
+# g_debug = True
+g_debug = False
 cdn = 'https://cdn-1254016670.cos.ap-chengdu.myqcloud.com/yuekao'
 
 
@@ -86,9 +99,9 @@ cdn = 'https://cdn-1254016670.cos.ap-chengdu.myqcloud.com/yuekao'
 def index():
     if request.method == 'GET':
 
-        # 在主页删除角色状态
-        if 'character' in session:
-            session['character'] = None
+        # 在主页删除状态
+        if 'login' in session:
+            session['login'] = None
 
         s, res = generate_pass_port()
         md5 = hashlib.md5()
@@ -107,13 +120,16 @@ def index():
             md5.update(passport.encode())
             p = md5.hexdigest()
             # print('in: passport=', passport, ' s=', s, ' p=', p)
+            if os.path.exists('tmp/captcha/%s.jpg' % s):
+                # 验证码失效
+                os.remove('tmp/captcha/%s.jpg' % s)
             if p != s:
-                return '验证码错误。'
+                return make_alert('验证码错误或者已经失效，请刷新页面重试。')
         if 'file' not in request.files:
-            return '没有选择文件。'
+            return make_alert('没有选择文件。')
         file = request.files['file']
         if file.filename == '':
-            return '没有选择文件。'
+            return make_alert('没有选择文件。')
         filename = str(file.filename)
         file_type = filename.split('.')[-1]
         filedata = io.BytesIO()
@@ -133,11 +149,18 @@ def index():
         subject = form['subject']
         group_name = form['group_name']
         student_name = form['student_name']
+        try:
+            student_id = int(form['student_id'])
+        except ValueError:
+            return make_alert('学号填写错误！')
         score = form['score']
         feedback = form['feedback']
 
         if group_name == '' or student_name == '' or subject == '' or score == '':
-            return '表单填写错误，请重新填写。'
+            return make_alert('表单填写错误，请重新填写。')
+
+        if db.check_student_info(student_name, student_id) is False:
+            return make_alert('学号和名字不匹配！')
 
         time_date = str(time_cn.year).zfill(4) + '/' + str(time_cn.month).zfill(2) + '/' + str(time_cn.day).zfill(2)
         file_key = "%s/%s/%s/%s.%s" % (time_date, subject, group_name, student_name, file_type)
@@ -146,26 +169,233 @@ def index():
         # print(file_key)
         upload_file_threaded(file_key, filedata)
 
-        db.new_submit(group_name, student_name, subject, score, file_url, feedback, submit_time)
+        db.new_submit(group_name, student_name, student_id, subject, score, file_url, feedback, submit_time)
 
-        return '上传成功启动。请等待服务器CDN缓存(约30秒，视文件大小而定)'
+        return make_alert('上传成功启动，可以关闭网页。请等待服务器CDN缓存(约30秒，视文件大小而定)')
 
 
 @app.route('/data', methods=["GET", "POST"])
 def show_data():
     form = request.form
     if request.method == 'GET':
-        # 还没选择角色
-        # if 'character' not in session:
-        #     return render_template('character_choose.html')
-        # character = session['character']
-        # if character not in ['组长', '班长', '管理员']:
-        #     session['character'] = None
-        #     return redirect('/data')
-        if g_debug is False and ('login' not in session or session['login'] is False):
-            return render_template('input_password.html', cdn=cdn)
-        print(db.get_raw_data())
-        return render_template('helloworld.html')
+        args0 = dict(request.args)
+        args = {}
+        for arg in args0:
+            val = args0[arg]
+            if type(val) is list:
+                args[arg] = val[0]
+            else:
+                args[arg] = val
+        # print(args)
+        timedata = time.localtime(time.time())
+        # print(timedata)
+        year = int(timedata[0])
+        cndata = datetime(timedata[0], timedata[1], timedata[2], timedata[3], timedata[4], timedata[5])
+        central = pytz.timezone('Asia/Shanghai')
+        time_cn = central.localize(cndata)
+        if 'subject' in args:
+            subject = args['subject']
+        else:
+            subject = 'all'
+        if 'start_date' in args:
+            start_date = args['start_date']
+        else:
+            start_date = 'all'
+        if 'end_date' in args:
+            end_date = args['end_date']
+        else:
+            end_date = 'all'
+        if 'start_month' in args:
+            start_month = args['start_month']
+        else:
+            start_month = 'all'
+        if 'end_month' in args:
+            end_month = args['end_month']
+        else:
+            end_month = 'all'
+        if start_month == 'all' or start_date == 'all':
+            start_time_utc = None
+        else:
+            start_date, start_month = int(start_date), int(start_month)
+            start_time_utc = int(datetime(year=year, month=start_month, day=start_date).timestamp())
+        if end_month == 'all' or end_date == 'all':
+            end_time_utc = None
+        else:
+            end_date, end_month = int(end_date), int(end_month)
+            end_time_utc = int(datetime(year=year, month=end_month, day=end_date+1).timestamp())
+        time_limit = ''
+        if start_time_utc is None and end_time_utc is None:
+            time_limit = ''
+        elif start_time_utc is None and start_time_utc is not None:
+            time_limit = 'submit_time <= %s' % end_time_utc
+        elif start_time_utc is not None and end_time_utc is None:
+            time_limit = 'submit_time >= %s' % start_time_utc
+        elif start_time_utc is not None and end_time_utc is not None:
+            time_limit = '%s <= submit_time AND submit_time <= %s' % (start_time_utc, end_time_utc)
+        print('time_limit:', time_limit, start_time_utc, end_time_utc)
+
+        if 'group_name' in args:
+            group_name = args['group_name']
+        else:
+            group_name = 'all'
+
+        if 'conclude' in args:
+            conclude = args['conclude']
+            # print(conclude, type(conclude))
+            if conclude == 'True':
+                conclude = True
+            else:
+                conclude = False
+        else:
+            conclude = True
+        # print(type(conclude))
+
+        if subject == 'all':
+            subject_to_limit = '%'
+        else:
+            subject_to_limit = subject
+        if group_name == 'all':
+            group_name_to_limit = '%'
+        else:
+            group_name_to_limit = group_name
+
+        if 'download' in args:
+            download = args['download']
+            if download == 'True':
+                download = True
+            else:
+                download = False
+        else:
+            download = False
+
+        if time_limit != '':
+            limit = "%s AND subject LIKE '%s' AND group_name LIKE '%s'" % (time_limit, subject_to_limit, group_name_to_limit)
+        else:
+            limit = "subject LIKE '%s' AND group_name LIKE '%s'" % (subject_to_limit, group_name_to_limit)
+
+        # print(limit)
+
+        # if g_debug is False and ('login' not in session or session['login'] is False):
+        #     return render_template('input_password.html', cdn=cdn)
+        data = db.get_raw_data(limit_str=limit)
+        #     0          1          2          3       4       5         6          7
+        # group_name, student, student_id, subject, score, file_url, feedback, submit_time
+        #           0         1       2       3       4        5     6       7
+
+        if conclude is False:
+            labels = ['学科', '提交日期', '组长', '学号', '姓名', '分数', '反馈', '文件']
+            # 整理数据
+            results = []
+            for d in data:
+                print(d)
+                r = ['' for i in range(8)]
+                timedata2 = time.localtime(int(d[7]))
+                cndata2 = datetime(timedata2[0], timedata2[1], timedata2[2], timedata2[3], timedata2[4], timedata2[5])
+                central2 = pytz.timezone('Asia/Shanghai')
+                time_you = central2.localize(cndata2)
+                r[1] = "%s/%s" % (time_you.month, time_you.day)
+                r[2] = d[0]
+                r[3] = d[2]
+                r[4] = d[1]
+                r[0] = d[3]
+                r[5] = d[4]
+                r[6] = d[6]
+                r[7] = d[5]
+                results.append(copy.deepcopy(r))
+
+        else: # conclude
+            labels = ['组长', '学号', '姓名', '语文', '数学', '英语', '物理', '化学', '生物']
+            subject_label = ['语文', '数学', '英语', '物理', '化学', '生物']
+            subject_label_re = {'语文': 0, '数学': 1, '英语': 2, '物理': 3, '化学': 4, '生物': 5}
+            labels2 = ['学科', '提交日期', '组长', '学号', '姓名', '分数', '反馈', '文件']
+            students_info_raw = list(db.get_students_data())
+            students_info_raw.sort(key=lambda x: int(x[0]))
+            # print(students_info_raw)
+            students_name_id = {}
+            students_id_name = {}
+            students_group = {}
+            for student in students_info_raw:
+                students_name_id[student[1]] = int(student[0])
+                students_id_name[int(student[0])] = str(student[1])
+                if student[1] not in students_group:
+                    student_group = db.get_students_group(student[1])
+                    # print(student_group)
+                    if len(student_group) == 0:
+                        students_group[student[1]] = '未知'
+                        continue
+                    students_group[student[1]] = str(student_group[0][0])
+            print(students_group)
+            # 整理数据
+            results = []
+            results_dict = {}
+            for stu in students_info_raw:
+                results_dict[stu[1]] = [students_group[stu[1]], stu[0], stu[1], 0, 0, 0, 0, 0, 0]
+            print(results)
+            for d in data:
+                print(d)
+                #     0          1          2          3       4       5         6          7
+                # group_name, student, student_id, subject, score, file_url, feedback, submit_time
+                #           0         1       2       3       4        5     6       7
+                # r = ['' for i in range(8)]
+                # timedata2 = time.localtime(int(d[7]))
+                # cndata2 = datetime(timedata2[0], timedata2[1], timedata2[2], timedata2[3], timedata2[4], timedata2[5])
+                # central2 = pytz.timezone('Asia/Shanghai')
+                # time_you = central2.localize(cndata2)
+                # r[1] = "%s/%s" % (time_you.month, time_you.day)
+                # r[2] = d[0]
+                # r[3] = d[2]
+                # r[4] = d[1]
+                # r[0] = d[3]
+                # r[5] = d[4]
+                # r[6] = d[6]
+                # r[7] = d[5]
+                results_dict[d[1]][subject_label_re[d[3]] + 3] = d[4]
+
+                # results.append(copy.deepcopy(r))
+            for r in results_dict:
+                val = results_dict[r]
+                if group_name != 'all' and val[0] == group_name:
+                    results.append(val)
+                if group_name == 'all':
+                    results.append(val)
+                # print(group_name, val)
+
+            results.sort(key=lambda x: x[1])
+
+            # return ''
+
+        groups = db.get_group_list()
+        
+        download_url = '/data?download=True&start_month=%s&start_date=%s&end_month=%s&' \
+                       'end_date=%s&group_name=%s&subject=%s&conclude=%s' % \
+                       (start_month, start_date, end_month, end_date, group_name, subject, conclude)
+
+        if download is True:
+            # 生成csv文件
+            csv = ''
+            for label in labels:
+                csv += label + ','
+            # 去掉,
+            csv = csv[:-1]
+            csv += '\n'
+            for r in results:
+                for p in r:
+                    csv += str(p) + ','
+                csv = csv[:-1] + '\n'
+            csv_file = csv.encode('gbk', errors='ignore')
+            csv_data = io.BytesIO()
+            csv_data.write(csv_file)
+            csv_data.seek(0)
+            filename_ = ("1702约考成绩导出数据(下载于%s-%s-%s).csv" % (time_cn.year, time_cn.month, time_cn.day)).encode().decode('latin-1')
+            response = make_response(send_file(csv_data, attachment_filename="%s" % filename_))
+            response.headers["Content-Disposition"] = "attachment; filename=%s;" % filename_
+            return response
+
+        return render_template('data_show.html', content=results, labels=labels,
+                               cdn=cdn, start_month=start_month, start_date=start_date,
+                               end_month=end_month, end_date=end_date, selected_subject=subject,
+                               selected_group_name=group_name, group_names=groups, download_url=download_url,
+                               conclude=conclude)
     if request.method == 'POST':
         # if 'password' in form and 'character' in form:
         #     password = form['password']
@@ -179,10 +409,10 @@ def show_data():
             password = form['password']
             if password == 'ltyz13579':
                 session['login'] = True
-                return '<a href="/data">返回上一页</a>'
+                return redirect('/data')
             else:
-                return '密码错误！ <a href="/data">返回上一页</a>'
-        return '提交错误！ <a href="/data">返回上一页</a>'
+                return '%s<a href="/data">返回上一页</a>' % make_alert('密码错误！')
+        return '%s<a href="/data">返回上一页</a>' % make_alert('提交错误！')
 
 
 @app.route('/hello')
@@ -209,7 +439,7 @@ def mo_test():
 @app.route('/debug_clear')
 def clear_all():
     db.db_init()
-    return 'OK.'
+    return make_alert('OK.')
 
 
 @app.route('/favicon.ico')

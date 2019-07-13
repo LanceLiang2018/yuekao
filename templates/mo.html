@@ -31,15 +31,15 @@
 <body class="page-brand" background="{{cdn}}/bg.jpg">
 	
 <literal><script type="text/javascript"> window.$crisp=[];window.CRISP_WEBSITE_ID="152cf9ea-5ecf-4edc-80c8-010897e66ccd";$crisp.push(["set", "user:email", ""]);(function(){ d=document;s=d.createElement("script"); s.src="https://client.crisp.chat/l.js"; s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})(); </script></literal>
-<h2 align="center" style="color:rgb(84,179,245)">欢迎来到柳铁一中1702班暑假约考提交系统！</h2>
+<h2 align="center" style="color:rgb(84,179,245)">欢迎来到柳铁一中1702班<br>暑假约考提交系统</h2>
 
 <div class="authpage">
     <div class="container">
         <form action="/" method="post" enctype="multipart/form-data">
             <div class="auth-main auth-row auth-col-one">
                 <div class="auth-top auth-row">
-                    <a class="boardtop-left" href="/feedback">
-                        <div>反 馈</div>
+                    <a class="boardtop-left" href="/data">
+                        <div>管 理</div>
                     </a>
                     <div class="auth-logo">
                         <img src="{{cdn}}/icon.png" alt="">
@@ -56,8 +56,26 @@
                 </div>
                 <div class="auth-row">
                     <div class="form-group-label auth-row row-login">
+                        <label class="floating-label" for="student_id">自己学号(6位,1702XX)</label>
+                        <input class="form-control maxwidth-auth" id="student_id" type="text" name="student_id">
+                    </div>
+                </div>
+                <div class="auth-row">
+                    <div class="form-group-label auth-row row-login">
                         <label class="floating-label" for="student_name">自己名字</label>
                         <input class="form-control maxwidth-auth" id="student_name" type="text" name="student_name">
+                    </div>
+                </div>
+                <div class="auth-row">
+                    <div class="form-group-label auth-row row-login">
+                        <p style="color:gray">学科选择：</p><select name="subject" style="color:gray">
+                            <option value="语文">语文</option>
+                            <option value="数学">数学</option>
+                            <option value="英语">英语</option>
+                            <option value="物理">物理</option>
+                            <option value="化学">化学</option>
+                            <option value="生物">生物</option>
+                        </select>
                     </div>
                 </div>
                 <div class="auth-row">
