@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>更新学生信息</title>
+</head>
+<body>
+<h2>请上传一个xlsx/xls/csv文件。</h2>
+<p>上传格式：</p>
+<p>没有表头，每一行有两个数据，第一个是学号，第二个是名字。<br>
+    学生提交信息的时候只有名字学号符合了才能提交。</p>
+<!--<p>验证码：{{passport}}</p><br>-->
+<!-- <p>上传文件请用文件名标明姓名班级。</p> -->
+<form action="/update_stu_info" method="post" enctype="multipart/form-data">
+    选择一个文件：<input type="file" name="file" /><br>
+    <input type="submit" value="提交" />
+</form>
+</body>
+</html>

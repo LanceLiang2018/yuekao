@@ -13,10 +13,12 @@
         <div class="col-md-6 col-sm-12 col-xs-12">
             <div class="panel panel-default">
             <div class="panel-heading"><h3>数据展示</h3></div>
-                <a href="/">←回首页</a>&nbsp;
+                <a href="/">←回首页</a>
                 <a href="{{download_url}}">下载该数据</a>&nbsp;
                 <a href="/data?conclude=True">查看总结</a>&nbsp;
-                <a href="/data?conclude=False">查看提交情况</a><br>
+                <a href="/data?conclude=False">查看提交情况</a>
+<!--                <a href="/update_stu_info">更新学生信息</a><br>-->
+                <a href="/admin">管理员</a>
                 <div class="screen"><h4>数据筛选</h4></div>
                 <form action="/data" method="GET">
                     选择学科:<select name="subject">
@@ -87,7 +89,7 @@
                     <input type="hidden" name="conclude" value={{conclude}} />
                     <input type="submit" value="确定" />
                 </form>
-            <div class="panel-body" style="width:1500px">
+            <div class="panel-body" style="width:100%">
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered table-hover">
                         <thead>
@@ -98,7 +100,11 @@
                         </thead>
                         <tbody> {% for i in content %}
                             <tr> {% for j in i %}
-                            <td> {{ j }}
+                                {% if j in known_urls: %}
+                                <td><a href="{{j}}">链接</a></td>
+                                {% else %}
+                                <td> {{ j }}
+                                {% endif %}
                             </td> {% endfor %}
                             </tr> {% endfor %}
                         </tbody>

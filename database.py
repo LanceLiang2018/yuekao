@@ -4,6 +4,9 @@ import json
 import os
 import time
 import copy
+from upload import *
+from datetime import datetime
+import requests
 
 
 class DataBase:
@@ -11,6 +14,8 @@ class DataBase:
         self.file_db_init = "db_init.sql"
 
         self.tables = ['raw_data', 'student']
+
+        self.hosts = ['127.0.0.1:5000', 'yuekao.herokuapp.com']
 
         # self.sql_type = "PostgreSQL"
         self.sql_types = {"SQLite": 0, "PostgreSQL": 1}
@@ -93,6 +98,34 @@ class DataBase:
                     print('Error:\n', s, 'Exception:\n', e)
         self.cursor_finish(cursor)
 
+    def db_backup(self):
+        backup = {}
+        if self.sql_type == self.sql_types['SQLite']:
+            is_sqlite = True
+        else:
+            is_sqlite = False
+        for table in self.tables:
+            backup[table] = {}
+            if is_sqlite:
+                labels_data = self.new_execute_read("PRAGMA table_info('%s')" % table)
+            else:
+                labels_data = self.new_execute_read("select name from sys.syscolumns where id=object_id('%s');" % table)
+            backup[table]['labels'] = labels_data
+            backup[table]['data'] = self.new_execute_read("SELECT * FROM %s" % table)
+
+        backup_json = json.dumps(backup)
+        backup_json_io = io.BytesIO(backup_json.encode('utf8'))
+        timedata = time.localtime(time.time())
+        cndata = datetime(timedata[0], timedata[1], timedata[2], timedata[3], timedata[4], timedata[5])
+        upload_file('backups/database/%s.json' % str(cndata), backup_json_io)
+
+        csv_data = requests.get('http://%s/data?download=True&start_month=all&'
+                                'start_date=all&end_month=all&end_date=all&'
+                                'group_name=all&subject=all&'
+                                'conclude=False' % self.hosts[self.sql_type]).content
+        csv_io = io.BytesIO(csv_data)
+        upload_file('backups/csv/%s.csv' % str(cndata), csv_io)
+
     def new_submit(self, group_name, student, student_id, subject, score, file_url, feedback, submit_time):
         # self.new_execute_write("REPLACE INTO raw_data (group_name, student, subject, score, file_url, "
         #                  "feedback, submit_time) VALUES (%s, %s, %s, %s, %s, %s, %s)",
@@ -149,7 +182,7 @@ class DataBase:
     def check_student_info(self, name: str, student_id: int):
         data = self.new_execute_read("SELECT 1 FROM student WHERE id = %s AND name = %s", (student_id, name))
         if len(data) == 0:
-            print(data)
+            # print(data)
             return False
         return True
 
@@ -165,11 +198,11 @@ class DataBase:
             try:
                 d1, d2 = line.split(',')
                 try:
-                    u[0] = int(d1)
+                    u[0] = int(float(d1))
                 except ValueError:
                     u[0] = int(str(d1))
                 u[1] = str(d2)
-                u[1] = u[1].replace(' ', '')
+                u[1] = u[1].replace(' ', '').replace('\n', '').replace('\r', '')
                 results.append(u)
             except ValueError:
                 return None
@@ -193,6 +226,7 @@ if __name__ == '__main__':
     with open('StudentID2.csv', 'r', encoding='gbk') as f:
         db.update_student_info(f.read())
     print(db.get_students_data())
+    db.db_backup()
     # for i in range(10):
     #     db.new_submit('a', 'b', 'c', 100.5, '', '', int(time.time()))
     # db.new_submit('a', 'b', 'd', 10.5, '', '', int(time.time()))

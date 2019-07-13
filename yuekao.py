@@ -11,6 +11,9 @@ from PIL import Image, ImageDraw, ImageFont
 from database import DataBase
 import copy
 import textwrap
+import xlrd
+import csv
+
 
 app = Flask(__name__, static_folder='tmp')
 app.secret_key = 'LianGunJianPanDaChuLaiDeZiNiXInBuXin'
@@ -25,6 +28,18 @@ def local2utc(local_st):
     time_struct = time.mktime(local_st.timetuple())
     utc_st = datetime.utcfromtimestamp(time_struct)
     return utc_st
+
+
+def xlsx_to_csv(xlsx_data: bytes):
+    workbook = xlrd.open_workbook(file_contents=xlsx_data)
+    table = workbook.sheet_by_index(0)
+    csv_data = io.StringIO()
+    write = csv.writer(csv_data)
+    for row_num in range(table.nrows):
+        row_value = table.row_values(row_num)
+        write.writerow(row_value)
+    csv_data.seek(0)
+    return csv_data.read()
 
 
 def captcha_get(string: str):
@@ -100,8 +115,8 @@ def index():
     if request.method == 'GET':
 
         # 在主页删除状态
-        if 'login' in session:
-            session['login'] = None
+        # if 'login' in session:
+        #     session['login'] = None
 
         s, res = generate_pass_port()
         md5 = hashlib.md5()
@@ -232,7 +247,7 @@ def show_data():
             time_limit = 'submit_time >= %s' % start_time_utc
         elif start_time_utc is not None and end_time_utc is not None:
             time_limit = '%s <= submit_time AND submit_time <= %s' % (start_time_utc, end_time_utc)
-        print('time_limit:', time_limit, start_time_utc, end_time_utc)
+        # print('time_limit:', time_limit, start_time_utc, end_time_utc)
 
         if 'group_name' in args:
             group_name = args['group_name']
@@ -273,7 +288,9 @@ def show_data():
         else:
             limit = "subject LIKE '%s' AND group_name LIKE '%s'" % (subject_to_limit, group_name_to_limit)
 
-        print(limit)
+        # print(limit)
+
+        known_urls = []
 
         # if g_debug is False and ('login' not in session or session['login'] is False):
         #     return render_template('input_password.html', cdn=cdn)
@@ -287,7 +304,7 @@ def show_data():
             # 整理数据
             results = []
             for d in data:
-                print(d)
+                # print(d)
                 r = ['' for i in range(8)]
                 timedata2 = time.localtime(int(d[7]))
                 cndata2 = datetime(timedata2[0], timedata2[1], timedata2[2], timedata2[3], timedata2[4], timedata2[5])
@@ -301,6 +318,7 @@ def show_data():
                 r[5] = d[4]
                 r[6] = d[6]
                 r[7] = d[5]
+                known_urls.append(r[7])
                 results.append(copy.deepcopy(r))
 
         else: # conclude
@@ -324,15 +342,15 @@ def show_data():
                         students_group[student[1]] = '未知'
                         continue
                     students_group[student[1]] = str(student_group[0][0])
-            print(students_group)
+            # print(students_group)
             # 整理数据
             results = []
             results_dict = {}
             for stu in students_info_raw:
                 results_dict[stu[1]] = [students_group[stu[1]], stu[0], stu[1], 0, 0, 0, 0, 0, 0]
-            print(results)
+            # print(results)
             for d in data:
-                print(d)
+                # print(d)
                 #     0          1          2          3       4       5         6          7
                 # group_name, student, student_id, subject, score, file_url, feedback, submit_time
                 #           0         1       2       3       4        5     6       7
@@ -372,17 +390,17 @@ def show_data():
 
         if download is True:
             # 生成csv文件
-            csv = ''
+            csv_text = ''
             for label in labels:
-                csv += label + ','
+                csv_text += label + ','
             # 去掉,
-            csv = csv[:-1]
-            csv += '\n'
+            csv_text = csv_text[:-1]
+            csv_text += '\n'
             for r in results:
                 for p in r:
-                    csv += str(p) + ','
-                csv = csv[:-1] + '\n'
-            csv_file = csv.encode('gbk', errors='ignore')
+                    csv_text += str(p) + ','
+                csv_text = csv_text[:-1] + '\n'
+            csv_file = csv_text.encode('gbk', errors='ignore')
             csv_data = io.BytesIO()
             csv_data.write(csv_file)
             csv_data.seek(0)
@@ -395,24 +413,8 @@ def show_data():
                                cdn=cdn, start_month=start_month, start_date=start_date,
                                end_month=end_month, end_date=end_date, selected_subject=subject,
                                selected_group_name=group_name, group_names=groups, download_url=download_url,
-                               conclude=conclude)
-    if request.method == 'POST':
-        # if 'password' in form and 'character' in form:
-        #     password = form['password']
-        #     character = form['character']
-        #     if password == 'ltyz13579':
-        #         session['character'] = character
-        #         return '<a href="/data">返回上一页</a>'
-        #     else:
-        #         return '密码错误！ <a href="/data">返回上一页</a>'
-        if 'password' in form:
-            password = form['password']
-            if password == 'ltyz13579':
-                session['login'] = True
-                return redirect('/data')
-            else:
-                return '%s<a href="/data">返回上一页</a>' % make_alert('密码错误！')
-        return '%s<a href="/data">返回上一页</a>' % make_alert('提交错误！')
+                               conclude=conclude, known_urls=known_urls)
+    return 'Error.'
 
 
 @app.route('/hello')
@@ -436,10 +438,80 @@ def mo_test():
     return render_template('mo.html')
 
 
-@app.route('/debug_clear')
+@app.route('/admin', methods=['POST', 'GET'])
+def admin():
+    form = request.form
+    if request.method == 'POST':
+        # if 'password' in form and 'character' in form:
+        #     password = form['password']
+        #     character = form['character']
+        #     if password == 'ltyz13579':
+        #         session['character'] = character
+        #         return '<a href="/data">返回上一页</a>'
+        #     else:
+        #         return '密码错误！ <a href="/data">返回上一页</a>'
+        if 'password' in form:
+            password = form['password']
+            if password == 'ltyz13579':
+                session['login'] = True
+                return redirect('/admin')
+            else:
+                return '%s<a href="/data">返回上一页</a>' % make_alert('密码错误！')
+        return '%s<a href="/data">返回上一页</a>' % make_alert('提交错误！')
+    if 'login' not in session or session['login'] is not True:
+        return render_template('input_password3.html', cdn=cdn)
+    return render_template('admin.html')
+
+
+@app.route('/debug_clear_all')
 def clear_all():
+    if 'login' not in session or session['login'] is not True:
+        return redirect('/admin')
+    db.db_backup()
     db.db_init()
     return make_alert('OK.')
+
+
+@app.route('/update_stu_info', methods=['GET', 'POST'])
+def update_stu_info():
+    if request.method == 'GET':
+        if 'login' not in session:
+            return render_template('input_password2.html', cdn=cdn)
+        return render_template('upload_stu_info.html')
+    else:
+        # POST
+        if 'password' in request.form:
+            if request.form['password'] != 'ltyz13579':
+                return make_alert('密码错误~') + '<a href="/update_stu_info">返回上一页</a>'
+            return redirect('/update_stu_info')
+        if 'file' not in request.files:
+            return make_alert('没有选择文件。')
+        file = request.files['file']
+        if file.filename == '':
+            return make_alert('没有选择文件。')
+        filename = str(file.filename)
+        file_type = filename.split('.')[-1].lower()
+        if file_type not in ['csv', 'xls', 'xlsx']:
+            return make_alert('文件类型错误！')
+        filedata = io.BytesIO()
+        file.save(filedata)
+        filedata.seek(0)
+        if file_type == 'csv':
+            csv_data = filedata.read()
+        else:
+            csv_data = xlsx_to_csv(filedata.read()).encode()
+        try:
+            csv_data = csv_data.decode('gbk')
+        except UnicodeDecodeError:
+            try:
+                csv_data = csv_data.decode('utf8')
+            except UnicodeDecodeError:
+                return make_alert('文件内容解码错误！')
+
+        result = db.update_student_info(csv_data)
+        if result is False:
+            return make_alert('文件解析错误！') + '<a href="/update_stu_info">返回</a>'
+        return redirect('/data')
 
 
 @app.route('/favicon.ico')
