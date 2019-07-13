@@ -108,6 +108,7 @@ def make_alert(message: str):
 # g_debug = True
 g_debug = False
 cdn = 'https://cdn-1254016670.cos.ap-chengdu.myqcloud.com/yuekao'
+captcha_secret = 'Lian Gun Jian Pan Liang Ci Ni Xin Bu Xin'
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -120,11 +121,11 @@ def index():
 
         s, res = generate_pass_port()
         md5 = hashlib.md5()
-        md5.update(res.encode())
+        md5.update(("%s[%s]" % (res, captcha_secret)).encode())
         p = md5.hexdigest()
         # print('p=', p)
         captcha_get(s).save('tmp/captcha/%s.jpg' % p)
-        return render_template('mo.html', passport='/captcha/%s' % p, s=p,
+        return render_template('mo.html', passport='/tmp/captcha/%s.jpg' % p, s=p,
                                cdn=cdn)
     if request.method == 'POST':
         form = request.form
@@ -132,7 +133,8 @@ def index():
             s = form['s']
             passport = form['passport']
             md5 = hashlib.md5()
-            md5.update(passport.encode())
+            # md5.update(passport.encode())
+            md5.update(("%s[%s]" % (passport, captcha_secret)).encode())
             p = md5.hexdigest()
             # print('in: passport=', passport, ' s=', s, ' p=', p)
             if os.path.exists('tmp/captcha/%s.jpg' % s):
