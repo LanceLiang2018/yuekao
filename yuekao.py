@@ -115,7 +115,14 @@ captcha_secret = 'Lian Gun Jian Pan Liang Ci Ni Xin Bu Xin'
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
-
+        args0 = dict(request.args)
+        args = {}
+        for arg in args0:
+            val = args0[arg]
+            if type(val) is list:
+                args[arg] = val[0]
+            else:
+                args[arg] = val
         # 在主页删除状态
         # if 'login' in session:
         #     session['login'] = None
@@ -127,7 +134,7 @@ def index():
         # print('p=', p)
         captcha_get(s).save('tmp/captcha/%s.jpg' % p)
         return render_template('mo.html', passport='/tmp/captcha/%s.jpg' % p, s=p,
-                               cdn=cdn)
+                               cdn=cdn, key_id=secret_id, key_key=secret_key, region=region, bucket=bucket)
     if request.method == 'POST':
         form = request.form
         if not g_debug:
@@ -434,11 +441,6 @@ def captcha_get_img(cid: str):
 @app.route('/res/<string:filename>')
 def res(filename: str):
     return redirect(url_for('static', filename=filename))
-
-
-@app.route('/mo_test')
-def mo_test():
-    return render_template('mo.html')
 
 
 @app.route('/admin', methods=['POST', 'GET'])

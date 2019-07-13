@@ -223,10 +223,11 @@ class DataBase:
 if __name__ == '__main__':
     db = DataBase()
     db.db_init()
-    with open('StudentID2.csv', 'r', encoding='gbk') as f:
-        db.update_student_info(f.read())
-    print(db.get_students_data())
-    db.db_backup()
+    # with open('StudentID2.csv', 'r', encoding='gbk') as f:
+    #     db.update_student_info(f.read())
+    # print(db.get_students_data())
+    # db.db_backup()
+
     # for i in range(10):
     #     db.new_submit('a', 'b', 'c', 100.5, '', '', int(time.time()))
     # db.new_submit('a', 'b', 'd', 10.5, '', '', int(time.time()))
