@@ -517,6 +517,27 @@ def clear_all():
     return make_alert('OK.')
 
 
+@app.route('/new_exam')
+def new_exam():
+    if 'login' not in session or session['login'] is not True:
+        return redirect('/admin')
+    result = clear_all()
+    if '错误' in result:
+        return result
+    if os.path.exists('StudentID.csv'):
+        try:
+            with open('StudentID.csv', encoding='gbk') as f:
+                db.update_student_info(f.read())
+        except UnicodeDecodeError:
+            try:
+                with open('StudentID.csv', encoding='utf8') as f:
+                    db.update_student_info(f.read())
+            except UnicodeDecodeError:
+                return make_alert('完成，但是学生信息文件错误，没有更新学生信息！')
+        return make_alert('完成！')
+    return make_alert('完成，但是没有更新学生信息！')
+
+
 @app.route('/update_stu_info', methods=['GET', 'POST'])
 def update_stu_info():
     if request.method == 'GET':
