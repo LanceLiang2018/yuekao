@@ -16,6 +16,7 @@ import xlwt
 import csv
 import psycopg2
 import sqlite3
+import markdown
 
 
 app = Flask(__name__, static_folder='tmp')
@@ -583,6 +584,20 @@ def update_stu_info():
 @app.route('/favicon.ico')
 def icon():
     return redirect('https://s.gravatar.com/avatar/544b5009873b27f5e0aa6dd8ffc1d3d8?s=144')
+
+
+@app.route('/help')
+def help_content():
+    with open('README.md', encoding='utf8') as f:
+        data = markdown.markdown(f.read())
+        return data
+
+
+@app.route('/staff')
+def staff():
+    with open('README.md', encoding='utf8') as f:
+        data = markdown.markdown(f.read())
+        return data
 
 
 if __name__ == '__main__':

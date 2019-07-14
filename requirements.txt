@@ -12,3 +12,4 @@ markdown
 Pillow
 xlrd
 xlwt
+torrentool
