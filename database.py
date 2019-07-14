@@ -21,7 +21,7 @@ class DataBase:
         self.sql_types = {"SQLite": 0, "PostgreSQL": 1}
         # self.sql_type = self.sql_types['PostgreSQL']
         # self.sql_type = self.sql_types['SQLite']
-        if os.environ.get('PORT', '5000') == '50001':
+        if os.environ.get('PORT', '5000') == '5000':
             # Local
             self.sql_type = self.sql_types['SQLite']
         else:

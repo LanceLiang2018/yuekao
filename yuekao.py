@@ -12,6 +12,7 @@ from database import DataBase
 import copy
 import textwrap
 import xlrd
+import xlwt
 import csv
 import psycopg2
 import sqlite3
@@ -42,6 +43,26 @@ def xlsx_to_csv(xlsx_data: bytes):
         write.writerow(row_value)
     csv_data.seek(0)
     return csv_data.read()
+
+
+def csv_to_xlsx(csv_data: str):
+    f = io.StringIO(csv_data)
+    read = csv.reader(f)
+    workbook = xlwt.Workbook()
+    sheet = workbook.add_sheet('data')  # 创建一个sheet表格
+    l = 0
+    for line in read:
+        # print(line)
+        r = 0
+        for i in line:
+            # print(i)
+            sheet.write(l, r, i)  # 一个一个将单元格数据写入
+            r = r + 1
+        l = l + 1
+    xlsx_io = io.BytesIO()
+    workbook.save(filename_or_stream=xlsx_io)  # 保存Excel
+    xlsx_io.seek(0)
+    return xlsx_io.read()
 
 
 def captcha_get(string: str):
@@ -417,9 +438,15 @@ def show_data():
             csv_data = io.BytesIO()
             csv_data.write(csv_file)
             csv_data.seek(0)
-            filename_ = ("1702约考成绩导出数据(下载于%s-%s-%s).csv" %
+            # filename_ = ("1702约考成绩导出数据(下载于%s-%s-%s).csv" %
+            #              (time_cn.year, time_cn.month, time_cn.day)).encode().decode('latin-1')
+
+            # 保存为xlsx格式
+            xlsx_data = io.BytesIO(csv_to_xlsx(csv_text))
+            filename_ = ("1702约考成绩导出数据(下载于%s-%s-%s).xlsx" %
                          (time_cn.year, time_cn.month, time_cn.day)).encode().decode('latin-1')
-            response = make_response(send_file(csv_data, attachment_filename="%s" % filename_))
+            # response = make_response(send_file(csv_data, attachment_filename="%s" % filename_))
+            response = make_response(send_file(xlsx_data, attachment_filename="%s" % filename_))
             response.headers["Content-Disposition"] = "attachment; filename=%s;" % filename_
             return response
 
