@@ -26,11 +26,13 @@
 	<!-- ... -->
 <style>
 .divcss5{ position:fixed; bottom:0;}
-</style><script src="{{cdn}}/l.js" async=""></script><link href="{{cdn}}/style_https.css" rel="stylesheet"></head>
+</style>
+<!--<link href="{{cdn}}/style_https.css" rel="stylesheet">-->
+</head>
   
 <body class="page-brand" background="{{cdn}}/bg.jpg">
 
-<h2 align="center" style="color:rgb(84,179,245)">欢迎来到柳铁一中1702班<br>暑假约考提交系统</h2>
+<h2 align="center" style="color:rgb(84,179,245)">欢迎来到柳铁一中1702班暑假约考提交系统</h2>
 
 <div class="authpage">
     <div class="container">
@@ -43,8 +45,8 @@
                     <div class="auth-logo">
                         <img src="{{cdn}}/icon.png" alt="">
                     </div>
-                    <a href="/help" class="boardtop-right">
-                        <div>帮 助</div>
+                    <a href="/app" class="boardtop-right">
+                        <div>下 载</div>
                     </a>
                 </div>
                 <div class="auth-row">
@@ -96,7 +98,7 @@
                 </div>
                 <div class="auth-row">
                     <div class="form-group-label auth-row row-login">
-                        <img width="240px" src="{{passport}}"><br>
+                        <img width="auto" height="52px" src="{{passport}}"><br>
                     </div>
                 </div>
 <!--                <div class="auth-row">-->
@@ -129,37 +131,27 @@
 <!--                    </div>-->
                 </div>
                 <div class="auth-bottom auth-row">
-                    <p>祝君暑假愉快超车</p>
+                    <p>©2019 鸽研部 <a href="/help">帮助</a></p>
                 </div>
             </div>
         </form>
     </div>
 </div>
 
-
-
-
-<div aria-hidden="true" class="modal modal-va-middle fade" id="result" role="dialog" tabindex="-1">
-	<div class="modal-dialog modal-xs">
-		<div class="modal-content">
-			<div class="modal-inner">
-				<p class="h5 margin-top-sm text-black-hint" id="msg"></p>
-			</div>
-			<div class="modal-footer">
-				<p class="text-right"><button class="btn btn-flat btn-brand-accent waves-attach waves-effect" data-dismiss="modal" type="button" id="result_ok">知道了</button></p>
-			</div>
-		</div>
-	</div>
-</div>
 <!--
 I'm glad you use this theme, the development is no so easy, I hope you can keep the copyright, I will thank you so much.
 It will not impact the appearance and can give developers a lot of support :)
 
 很高兴您使用并喜欢该主题，开发不易 十分谢谢与希望您可以保留一下版权声明。它不会影响美观并可以给开发者很大的支持和动力。 :)
--->    
+-->
+<!-- 新 API 方法， 十分简洁 -->
+<!--<script src="https://v1.hitokoto.cn/?encode=js&select=%23hitokoto" defer></script>-->
+<script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
 <footer class="ui-footer">
 	<div class="container">
-		<marquee>©2019 鸽研部 <a href="/staff">STAFF</a></marquee>
+<!--		<marquee>©2019 鸽研部 <a href="/help">帮助</a></marquee>-->
+        <marquee id="hitokoto" class="jinrishici-sentence">正在获取...</marquee>
+<!--        <marquee id="jinrishici-sentence">正在获取...</marquee>-->
 	</div>
 </footer>
 	<!-- js -->

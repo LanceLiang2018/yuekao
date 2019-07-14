@@ -600,6 +600,11 @@ def staff():
         return data
 
 
+@app.route('/app')
+def download_app():
+    return redirect(get_upload_prefix() + 'app.apk')
+
+
 if __name__ == '__main__':
     _li = os.listdir('tmp/captcha')
     for _i in _li:
