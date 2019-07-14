@@ -14,6 +14,7 @@ import textwrap
 import xlrd
 import csv
 import psycopg2
+import sqlite3
 
 
 app = Flask(__name__, static_folder='tmp')
@@ -25,7 +26,7 @@ print(len(captcha_data))
 
 
 def local2utc(local_st):
-    '''本地时间转UTC时间（-8:00）'''
+    # 本地时间转UTC时间（-8:00）
     time_struct = time.mktime(local_st.timetuple())
     utc_st = datetime.utcfromtimestamp(time_struct)
     return utc_st
@@ -98,8 +99,8 @@ def generate_pass_port(limit=100):
     chars = '+-'
     p = randint(0, 1)
     s = '%d %s %d' % (a, chars[p], b)
-    res = str(fun[p](a, b))
-    return s, res
+    res_ = str(fun[p](a, b))
+    return s, res_
 
 
 def make_alert(message: str):
@@ -127,9 +128,9 @@ def index():
         # if 'login' in session:
         #     session['login'] = None
 
-        s, res = generate_pass_port()
+        s, res_ = generate_pass_port()
         md5 = hashlib.md5()
-        md5.update(("%s[%s]" % (res, captcha_secret)).encode())
+        md5.update(("%s[%s]" % (res_, captcha_secret)).encode())
         p = md5.hexdigest()
         # print('p=', p)
         captcha_get(s).save('tmp/captcha/%s.jpg' % p)
@@ -201,7 +202,7 @@ def index():
 
 @app.route('/data', methods=["GET", "POST"])
 def show_data():
-    form = request.form
+    # form = request.form
     if request.method == 'GET':
         args0 = dict(request.args)
         args = {}
@@ -294,9 +295,11 @@ def show_data():
             download = False
 
         if time_limit != '':
-            limit = "%s AND subject LIKE '%s' AND group_name LIKE '%s'" % (time_limit, subject_to_limit, group_name_to_limit)
+            limit = "%s AND subject LIKE '%s' AND group_name LIKE '%s'" % \
+                    (time_limit, subject_to_limit, group_name_to_limit)
         else:
-            limit = "subject LIKE '%s' AND group_name LIKE '%s'" % (subject_to_limit, group_name_to_limit)
+            limit = "subject LIKE '%s' AND group_name LIKE '%s'" % \
+                    (subject_to_limit, group_name_to_limit)
 
         # print(limit)
 
@@ -315,7 +318,7 @@ def show_data():
             results = []
             for d in data:
                 # print(d)
-                r = ['' for i in range(8)]
+                r = ['' for _ in range(8)]
                 timedata2 = time.localtime(int(d[7]))
                 cndata2 = datetime(timedata2[0], timedata2[1], timedata2[2], timedata2[3], timedata2[4], timedata2[5])
                 central2 = pytz.timezone('Asia/Shanghai')
@@ -331,11 +334,11 @@ def show_data():
                 known_urls.append(r[7])
                 results.append(copy.deepcopy(r))
 
-        else: # conclude
+        else:  # conclude
             labels = ['组长', '学号', '姓名', '语文', '数学', '英语', '物理', '化学', '生物']
-            subject_label = ['语文', '数学', '英语', '物理', '化学', '生物']
+            # subject_label = ['语文', '数学', '英语', '物理', '化学', '生物']
             subject_label_re = {'语文': 0, '数学': 1, '英语': 2, '物理': 3, '化学': 4, '生物': 5}
-            labels2 = ['学科', '提交日期', '组长', '学号', '姓名', '分数', '反馈', '文件']
+            # labels2 = ['学科', '提交日期', '组长', '学号', '姓名', '分数', '反馈', '文件']
             students_info_raw = list(db.get_students_data())
             students_info_raw.sort(key=lambda x: int(x[0]))
             # print(students_info_raw)
@@ -414,7 +417,8 @@ def show_data():
             csv_data = io.BytesIO()
             csv_data.write(csv_file)
             csv_data.seek(0)
-            filename_ = ("1702约考成绩导出数据(下载于%s-%s-%s).csv" % (time_cn.year, time_cn.month, time_cn.day)).encode().decode('latin-1')
+            filename_ = ("1702约考成绩导出数据(下载于%s-%s-%s).csv" %
+                         (time_cn.year, time_cn.month, time_cn.day)).encode().decode('latin-1')
             response = make_response(send_file(csv_data, attachment_filename="%s" % filename_))
             response.headers["Content-Disposition"] = "attachment; filename=%s;" % filename_
             return response
@@ -472,10 +476,16 @@ def admin():
 def clear_all():
     if 'login' not in session or session['login'] is not True:
         return redirect('/admin')
-    try:
-        db.db_backup()
-    except psycopg2.errors.UndefinedTable as e:
-        return make_alert('错误。%s' % str(e))
+    if db.sql_type == db.sql_types['SQLite']:
+        try:
+            db.db_backup()
+        except sqlite3.OperationalError as e:
+            return make_alert('错误。%s' % str(e))
+    else:
+        try:
+            db.db_backup()
+        except psycopg2.errors.UndefinedTable as e:
+            return make_alert('错误。%s' % str(e))
     db.db_init()
     return make_alert('OK.')
 

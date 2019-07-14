@@ -21,7 +21,7 @@ class DataBase:
         self.sql_types = {"SQLite": 0, "PostgreSQL": 1}
         # self.sql_type = self.sql_types['PostgreSQL']
         # self.sql_type = self.sql_types['SQLite']
-        if os.environ.get('PORT', '5000') == '5000':
+        if os.environ.get('PORT', '5000') == '50001':
             # Local
             self.sql_type = self.sql_types['SQLite']
         else:
@@ -30,26 +30,44 @@ class DataBase:
         self.sql_chars = ["?", "%s"]
         self.sql_char = self.sql_chars[self.sql_type]
 
+        self.max_retry = 5
+
         self.connect_init()
 
     def v(self, string: str):
         return string.replace('%s', self.sql_char)
 
-    def new_execute_write(self, string: str, args=()):
+    def new_execute_write(self, string: str, args=(), retry=0):
+        if retry > self.max_retry:
+            raise Exception("Reach max retry times!")
         cursor = self.cursor_get()
-        cursor.execute(self.v(string), args)
+        cursor.execute("BEGIN")
+        try:
+            cursor.execute(self.v(string), args)
+        except Exception:
+            cursor.execute("ROLLBACK")
+            self.cursor_finish(cursor)
+            self.new_execute_write(string, args=args, retry=retry+1)
+            return
         self.cursor_finish(cursor)
 
-    def new_execute_read(self, string: str, args=()):
+    def new_execute_read(self, string: str, args=(), retry=0):
+        if retry > self.max_retry:
+            raise Exception("Reach max retry times!")
         cursor = self.cursor_get()
-        # print(self.v(string), args)
-        if len(args) == 0:
-            cursor.execute(self.v(string))
-        else:
-            cursor.execute(self.v(string), args)
-        data = cursor.fetchall()
-        self.cursor_finish(cursor)
-        return data
+        cursor.execute("BEGIN")
+        try:
+            if len(args) == 0:
+                cursor.execute(self.v(string))
+            else:
+                cursor.execute(self.v(string), args)
+            data = cursor.fetchall()
+            self.cursor_finish(cursor)
+            return data
+        except Exception:
+            cursor.execute("ROLLBACK")
+            self.cursor_finish(cursor)
+            return self.new_execute_write(string, args=args, retry=retry + 1)
 
     def connect_init(self):
         if self.sql_type == self.sql_types['SQLite']:
@@ -106,10 +124,14 @@ class DataBase:
             is_sqlite = False
         for table in self.tables:
             backup[table] = {}
-            if is_sqlite:
-                labels_data = self.new_execute_read("PRAGMA table_info('%s')" % table)
-            else:
-                labels_data = self.new_execute_read("select name from sys.syscolumns where id=object_id('%s');" % table)
+            try:
+                if is_sqlite:
+                    labels_data = self.new_execute_read("PRAGMA table_info('%s')" % table)
+                else:
+                    labels_data = self.new_execute_read("select name from sys.syscolumns where id=object_id('%s');" % table)
+            except Exception:
+                with open(self.file_db_init) as f:
+                    labels_data = f.read()
             backup[table]['labels'] = labels_data
             backup[table]['data'] = self.new_execute_read("SELECT * FROM %s" % table)
 
