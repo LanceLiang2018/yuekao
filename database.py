@@ -82,11 +82,11 @@ class DataBase:
                                     port='5432',
                                     password='55e46bbde1772cb32715d4f52f51ad847ba3fe5af88902161336d56eb6c8a3c5')
             '''
-            self.conn = sql.connect(host='ec2-23-21-177-102.compute-1.amazonaws.com',
-                                    database='de2i9631srmbmu',
-                                    user='gmddtyiqovytns',
+            self.conn = sql.connect(host='ec2-54-243-150-10.compute-1.amazonaws.com',
+                                    database='dvmjo6pvokn3v',
+                                    user='icknsevpzbardh',
                                     port='5432',
-                                    password='c50bf20aa65ed382540564ec87103af7dec046c1873cc312f3ce6d687439db6d')
+                                    password='5c195733c2d92181a25b5e73f8870c9b3788157e90380bcbdef013daa743644d')
 
     def cursor_get(self):
         cursor = self.conn.cursor()
