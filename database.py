@@ -75,11 +75,18 @@ class DataBase:
             self.conn = sql.connect('data_sql.db', check_same_thread=False)
         else:
             import psycopg2 as sql
+            '''
             self.conn = sql.connect(host='ec2-23-21-160-38.compute-1.amazonaws.com',
                                     database='d6bagosv2bo9p8',
                                     user='dtzixfehvkttfq',
                                     port='5432',
                                     password='55e46bbde1772cb32715d4f52f51ad847ba3fe5af88902161336d56eb6c8a3c5')
+            '''
+            self.conn = sql.connect(host='ec2-23-21-177-102.compute-1.amazonaws.com',
+                                    database='de2i9631srmbmu',
+                                    user='gmddtyiqovytns',
+                                    port='5432',
+                                    password='c50bf20aa65ed382540564ec87103af7dec046c1873cc312f3ce6d687439db6d')
 
     def cursor_get(self):
         cursor = self.conn.cursor()
@@ -254,5 +261,3 @@ if __name__ == '__main__':
     #     db.new_submit('a', 'b', 'c', 100.5, '', '', int(time.time()))
     # db.new_submit('a', 'b', 'd', 10.5, '', '', int(time.time()))
     # print(db.get_raw_data())
-
-
