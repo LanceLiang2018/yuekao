@@ -21,7 +21,7 @@ class DataBase:
         self.sql_types = {"SQLite": 0, "PostgreSQL": 1}
         # self.sql_type = self.sql_types['PostgreSQL']
         # self.sql_type = self.sql_types['SQLite']
-        if os.environ.get('PORT', '5000') == '5000':
+        if os.environ.get('PORT', '5000') == '50001':
             # Local
             self.sql_type = self.sql_types['SQLite']
         else:
@@ -64,7 +64,8 @@ class DataBase:
             data = cursor.fetchall()
             self.cursor_finish(cursor)
             return data
-        except Exception:
+        except Exception as e:
+            print('Exception:', e)
             cursor.execute("ROLLBACK")
             self.cursor_finish(cursor)
             return self.new_execute_write(string, args=args, retry=retry + 1)
@@ -82,11 +83,11 @@ class DataBase:
                                     port='5432',
                                     password='55e46bbde1772cb32715d4f52f51ad847ba3fe5af88902161336d56eb6c8a3c5')
             '''
-            self.conn = sql.connect(host='ec2-54-243-150-10.compute-1.amazonaws.com',
-                                    database='dvmjo6pvokn3v',
-                                    user='icknsevpzbardh',
+            self.conn = sql.connect(host='ec2-23-21-160-38.compute-1.amazonaws.com',
+                                    database='d7trt1mao0h1fm',
+                                    user='miurmoscuiovyg',
                                     port='5432',
-                                    password='5c195733c2d92181a25b5e73f8870c9b3788157e90380bcbdef013daa743644d')
+                                    password='ae48f928cb75b0554574e5acb7c60053cdcde42125896c80d627abfacd8771d6')
 
     def cursor_get(self):
         cursor = self.conn.cursor()

@@ -509,11 +509,15 @@ def clear_all():
             db.db_backup()
         except sqlite3.OperationalError as e:
             return make_alert('错误。%s' % str(e))
+        except Exception as e:
+            return make_alert('警告！%s' % str(e))
     else:
         try:
             db.db_backup()
         except psycopg2.errors.UndefinedTable as e:
             return make_alert('错误。%s' % str(e))
+        except Exception as e:
+            return make_alert('警告！%s' % str(e))
     db.db_init()
     return make_alert('OK.')
 
