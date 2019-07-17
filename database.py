@@ -43,7 +43,10 @@ class DataBase:
         cursor = self.cursor_get()
         cursor.execute("BEGIN")
         try:
-            cursor.execute(self.v(string), args)
+            if len(args) == 0:
+                cursor.execute(self.v(string))
+            else:
+                cursor.execute(self.v(string), args)
         except Exception:
             cursor.execute("ROLLBACK")
             self.cursor_finish(cursor)
