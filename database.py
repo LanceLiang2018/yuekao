@@ -7,6 +7,7 @@ import copy
 from upload import *
 from datetime import datetime
 import requests
+import pymongo
 
 
 class DataBase:
@@ -16,17 +17,20 @@ class DataBase:
         self.tables = ['raw_data', 'student']
 
         self.hosts = ['127.0.0.1:5000', 'yuekao.herokuapp.com']
+        # client = pymongo.MongoClient("mongodb+srv://lanceliang:<password>@lanceliang-9kkx3.azure.mongodb.net/test?retryWrites=true&w=majority")
+        # db = client.test
+
 
         # self.sql_type = "PostgreSQL"
-        self.sql_types = {"SQLite": 0, "PostgreSQL": 1}
+        self.sql_types = {"SQLite": 0, "MongoDB": 1}
         # self.sql_type = self.sql_types['PostgreSQL']
         # self.sql_type = self.sql_types['SQLite']
-        if os.environ.get('PORT', '5000') == '50001':
+        if os.environ.get('PORT', '5000') == '5000':
             # Local
             self.sql_type = self.sql_types['SQLite']
         else:
             # Remote
-            self.sql_type = self.sql_types['PostgreSQL']
+            self.sql_type = self.sql_types['MongoDB']
         self.sql_chars = ["?", "%s"]
         self.sql_char = self.sql_chars[self.sql_type]
 
@@ -74,23 +78,17 @@ class DataBase:
             return self.new_execute_write(string, args=args, retry=retry + 1)
 
     def connect_init(self):
-        if self.sql_type == self.sql_types['SQLite']:
-            import sqlite3 as sql
-            self.conn = sql.connect('data_sql.db', check_same_thread=False)
-        else:
-            import psycopg2 as sql
-            '''
-            self.conn = sql.connect(host='ec2-23-21-160-38.compute-1.amazonaws.com',
-                                    database='d6bagosv2bo9p8',
-                                    user='dtzixfehvkttfq',
-                                    port='5432',
-                                    password='55e46bbde1772cb32715d4f52f51ad847ba3fe5af88902161336d56eb6c8a3c5')
-            '''
-            self.conn = sql.connect(host='ec2-23-21-160-38.compute-1.amazonaws.com',
-                                    database='d7trt1mao0h1fm',
-                                    user='miurmoscuiovyg',
-                                    port='5432',
-                                    password='ae48f928cb75b0554574e5acb7c60053cdcde42125896c80d627abfacd8771d6')
+        # import psycopg2 as sql
+        '''
+        self.conn = sql.connect(host='ec2-23-21-160-38.compute-1.amazonaws.com',
+                                database='d7trt1mao0h1fm',
+                                user='miurmoscuiovyg',
+                                port='5432',
+                                password='ae48f928cb75b0554574e5acb7c60053cdcde42125896c80d627abfacd8771d6')
+        '''
+        client = pymongo.MongoClient("mongodb+srv://lanceliang:1352040930database@lanceliang-9kkx3.azure.mongodb.net/"
+                                     "test?retryWrites=true&w=majority")
+        db = client.test
 
     def cursor_get(self):
         cursor = self.conn.cursor()

@@ -13,3 +13,5 @@ Pillow
 xlrd
 xlwt
 torrentool
+pymongo
+dnspython
