@@ -17,86 +17,62 @@ class DataBase:
         self.tables = ['raw_data', 'student']
 
         self.hosts = ['127.0.0.1:5000', 'yuekao.herokuapp.com']
-        # client = pymongo.MongoClient("mongodb+srv://lanceliang:<password>@lanceliang-9kkx3.azure.mongodb.net/test?retryWrites=true&w=majority")
-        # db = client.test
-
-
-        # self.sql_type = "PostgreSQL"
-        self.sql_types = {"SQLite": 0, "MongoDB": 1}
-        # self.sql_type = self.sql_types['PostgreSQL']
-        # self.sql_type = self.sql_types['SQLite']
-        if os.environ.get('PORT', '5000') == '5000':
-            # Local
-            self.sql_type = self.sql_types['SQLite']
+        if os.getenv('PORT', '5000') == '5000':
+            self.host = self.hosts[0]
         else:
-            # Remote
-            self.sql_type = self.sql_types['MongoDB']
-        self.sql_chars = ["?", "%s"]
-        self.sql_char = self.sql_chars[self.sql_type]
+            self.host = self.hosts[1]
 
-        self.max_retry = 5
+        self.sql_types = {"SQLite": 0, "MongoDB": 1}
+        # Remote
+        self.sql_type = self.sql_types['MongoDB']
+
+        # self.max_retry = 5
+
+        self.client = None
+        self.db = None
 
         self.connect_init()
 
-    def v(self, string: str):
-        return string.replace('%s', self.sql_char)
-
-    def new_execute_write(self, string: str, args=(), retry=0):
-        if retry > self.max_retry:
-            raise Exception("Reach max retry times!")
-        cursor = self.cursor_get()
-        cursor.execute("BEGIN")
-        try:
-            if len(args) == 0:
-                cursor.execute(self.v(string))
-            else:
-                cursor.execute(self.v(string), args)
-        except Exception:
-            cursor.execute("ROLLBACK")
-            self.cursor_finish(cursor)
-            self.new_execute_write(string, args=args, retry=retry+1)
-            return
-        self.cursor_finish(cursor)
-
-    def new_execute_read(self, string: str, args=(), retry=0):
-        if retry > self.max_retry:
-            raise Exception("Reach max retry times!")
-        cursor = self.cursor_get()
-        cursor.execute("BEGIN")
-        try:
-            if len(args) == 0:
-                cursor.execute(self.v(string))
-            else:
-                cursor.execute(self.v(string), args)
-            data = cursor.fetchall()
-            self.cursor_finish(cursor)
-            return data
-        except Exception as e:
-            print('Exception:', e)
-            cursor.execute("ROLLBACK")
-            self.cursor_finish(cursor)
-            return self.new_execute_write(string, args=args, retry=retry + 1)
+    # def new_execute_write(self, string: str, args=(), retry=0):
+    #     if retry > self.max_retry:
+    #         raise Exception("Reach max retry times!")
+    #     cursor = self.cursor_get()
+    #     cursor.execute("BEGIN")
+    #     try:
+    #         if len(args) == 0:
+    #             cursor.execute(self.v(string))
+    #         else:
+    #             cursor.execute(self.v(string), args)
+    #     except Exception:
+    #         cursor.execute("ROLLBACK")
+    #         self.cursor_finish(cursor)
+    #         self.new_execute_write(string, args=args, retry=retry+1)
+    #         return
+    #     self.cursor_finish(cursor)
+    #
+    # def new_execute_read(self, string: str, args=(), retry=0):
+    #     if retry > self.max_retry:
+    #         raise Exception("Reach max retry times!")
+    #     cursor = self.cursor_get()
+    #     cursor.execute("BEGIN")
+    #     try:
+    #         if len(args) == 0:
+    #             cursor.execute(self.v(string))
+    #         else:
+    #             cursor.execute(self.v(string), args)
+    #         data = cursor.fetchall()
+    #         self.cursor_finish(cursor)
+    #         return data
+    #     except Exception as e:
+    #         print('Exception:', e)
+    #         cursor.execute("ROLLBACK")
+    #         self.cursor_finish(cursor)
+    #         return self.new_execute_write(string, args=args, retry=retry + 1)
 
     def connect_init(self):
-        # import psycopg2 as sql
-        '''
-        self.conn = sql.connect(host='ec2-23-21-160-38.compute-1.amazonaws.com',
-                                database='d7trt1mao0h1fm',
-                                user='miurmoscuiovyg',
-                                port='5432',
-                                password='ae48f928cb75b0554574e5acb7c60053cdcde42125896c80d627abfacd8771d6')
-        '''
-        client = pymongo.MongoClient("mongodb+srv://lanceliang:1352040930database@lanceliang-9kkx3.azure.mongodb.net/"
+        self.client = pymongo.MongoClient("mongodb+srv://lanceliang:1352040930database@lanceliang-9kkx3.azure.mongodb.net/"
                                      "test?retryWrites=true&w=majority")
-        db = client.test
-
-    def cursor_get(self):
-        cursor = self.conn.cursor()
-        return cursor
-
-    def cursor_finish(self, cursor):
-        self.conn.commit()
-        cursor.close()
+        self.db = self.client.yuekao
 
     def db_init(self):
         try:
