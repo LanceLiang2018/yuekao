@@ -22,7 +22,7 @@ class DataBase:
         else:
             self.host = self.hosts[1]
 
-        self.sql_types = {"SQLite": 0, "MongoDB": 1}
+        self.sql_types = {"SQLite": 1, "MongoDB": 1}
         # Remote
         self.sql_type = self.sql_types['MongoDB']
 
@@ -30,6 +30,32 @@ class DataBase:
 
         self.client = None
         self.db = None
+        self.col = None
+        self.stu = None
+
+        # 原来建立的表结构
+        '''
+        CREATE TABLE raw_data (
+            group_name VARCHAR(32),
+            student VARCHAR(32),
+            student_id INT,
+            subject VARCHAR(32),
+            score REAL,
+            file_url VARCHAR(512),
+            feedback VARCHAR(4096),
+            submit_time INT,
+            submit_date INT
+        );
+        
+        CREATE TABLE student (
+            id INT primary key,
+            name VARCHAR(64)
+        );'''
+        self.tables_struct = {
+            'raw_data': ['group_name', 'student', 'student_id', 'subject', 'score',
+                         'file_url', 'feedback', 'submit_time', 'submit_date'],
+            'student': ['id', 'name']
+        }
 
         self.connect_init()
 
@@ -70,55 +96,32 @@ class DataBase:
     #         return self.new_execute_write(string, args=args, retry=retry + 1)
 
     def connect_init(self):
-        self.client = pymongo.MongoClient("mongodb+srv://lanceliang:1352040930database@lanceliang-9kkx3.azure.mongodb.net/"
-                                     "test?retryWrites=true&w=majority")
+        # self.client = pymongo.MongoClient("mongodb+srv://lanceliang:1352040930database@lanceliang-9kkx3.azure."
+        #                                   "mongodb.net/test?retryWrites=true&w=majority")
+        self.client = pymongo.MongoClient()
         self.db = self.client.yuekao
+        self.col = self.db.yuekao
+        self.stu = self.db.students
 
     def db_init(self):
-        try:
-            cursor = self.cursor_get()
-            for table in self.tables:
-                try:
-                    cursor.execute("DROP TABLE IF EXISTS %s" % table)
-                except Exception as e:
-                    print('Error when dropping:', table, '\nException:\n', e)
-                    self.cursor_finish(cursor)
-                    cursor = self.cursor_get()
-            self.cursor_finish(cursor)
-        except Exception as e:
-            print(e)
-        self.conn.close()
-        self.connect_init()
-        cursor = self.cursor_get()
-        # 一次只能执行一个语句。需要分割。而且中间居然不能有空语句。。
-        with open(self.file_db_init, encoding='utf8') as f:
-            string = f.read()
-            for s in string.split(';'):
-                try:
-                    if s != '':
-                        cursor.execute(s)
-                except Exception as e:
-                    print('Error:\n', s, 'Exception:\n', e)
-        self.cursor_finish(cursor)
+        collection_names = self.db.list_collection_names()
+        if 'yuekao' in collection_names:
+            self.db.drop_collection('yuekao')
+        if 'students' in collection_names:
+            self.db.drop_collection('students')
+        self.col = self.db.yuekao
+        self.stu = self.db.students
+        # 只有在插入一个数据之后才会建立Collection
+        # print(dict(self.col.find({})))
+        # self.col.insert_one({'created': True})
 
     def db_backup(self):
         backup = {}
-        if self.sql_type == self.sql_types['SQLite']:
-            is_sqlite = True
-        else:
-            is_sqlite = False
-        for table in self.tables:
+        for table in self.tables_struct:
             backup[table] = {}
-            try:
-                if is_sqlite:
-                    labels_data = self.new_execute_read("PRAGMA table_info('%s')" % table)
-                else:
-                    labels_data = self.new_execute_read("select name from sys.syscolumns where id=object_id('%s');" % table)
-            except Exception:
-                with open(self.file_db_init) as f:
-                    labels_data = f.read()
-            backup[table]['labels'] = labels_data
-            backup[table]['data'] = self.new_execute_read("SELECT * FROM %s" % table)
+            data = self.col.find({})
+            backup[table]['labels'] = self.tables_struct[table]
+            backup[table]['data'] = data
 
         backup_json = json.dumps(backup)
         backup_json_io = io.BytesIO(backup_json.encode('utf8'))
@@ -134,44 +137,34 @@ class DataBase:
         upload_file('backups/csv/%s.csv' % str(cndata), csv_io)
 
     def new_submit(self, group_name, student, student_id, subject, score, file_url, feedback, submit_time):
-        # self.new_execute_write("REPLACE INTO raw_data (group_name, student, subject, score, file_url, "
-        #                  "feedback, submit_time) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-        #                  (group_name, student, subject, score, file_url, feedback, submit_time))
-        # self.new_execute_write("UPDATE raw_data SET group_name = %s, student = %s, subject = %s, score = %s, "
-        #                        "file_url = %s, feedback = %s, submit_time = %s WHERE student = %s AND subject = %s",
-        #                        (group_name, student, subject, score, file_url, feedback, submit_time, student, subject))
-#         sql_string = '''IF EXISTS (SELECT 1 FROM raw_data WHERE student = %s AND subject = %s)
-# UPDATE raw_data SET group_name = %s, student = %s, subject = %s, score = %s, file_url = %s, feedback = %s, submit_time = %s
-# ELSE
-# INSERT INTO raw_data (group_name, student, subject, score, file_url, feedback, submit_time) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-# '''
-#         sql_data = (student, subject,
-#                     group_name, student, subject, score, file_url, feedback, submit_time,
-#                     group_name, student, subject, score, file_url, feedback, submit_time)
-#         self.new_execute_write(sql_string, sql_data)
         submit_time_date = time.localtime(submit_time).tm_mday
-        data = self.new_execute_read("SELECT 1 FROM raw_data WHERE student = %s AND subject = %s AND submit_date = %s", (student, subject, submit_time_date))
+        data = dict(self.col.find({'student': student, 'subject': subject, 'submit_date': submit_time_date}))
         if len(data) != 0:
-            self.new_execute_write("UPDATE raw_data SET group_name = %s, student = %s, subject = %s, score = %s, "
-                                   "file_url = %s, feedback = %s, submit_time = %s, student_id = %s "
-                                   "WHERE student = %s AND subject = %s AND submit_date = %s",
-                                   (group_name, student, subject, score, file_url, feedback, submit_time, student,
-                                    student_id, subject, submit_time_date))
+            # 已经存在当天的数据
+            self.col.update_one(
+                {'sutdent': student, 'subject': subject, 'submit_date': submit_time_date},
+                {"$set": {'group_name': group_name, 'student': student, 'subject': subject,
+                          'score': score, 'file_url': file_url, 'feedback': feedback,
+                          'submit_time': submit_time, 'student_id': student_id}}
+            )
         else:
-            self.new_execute_write("INSERT INTO raw_data (group_name, student, subject, score, file_url, "
-                             "feedback, submit_time, submit_date, student_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                             (group_name, student, subject, score, file_url, feedback, submit_time, submit_time_date, student_id))
+            # 当天数据不存在
+            self.col.insert_one(
+                {'group_name': group_name, 'student': student, 'subject': subject,
+                 'score': score, 'file_url': file_url, 'feedback': feedback,
+                 'submit_time': submit_time, 'submit_date': submit_time_date,
+                 'student_id': student_id}
+            )
 
-    def get_raw_data(self, limit_str=''):
-        sql_string = "SELECT group_name, student, student_id, subject, score, " \
-                     "file_url, feedback, submit_time FROM raw_data"
-        if limit_str != '':
-            sql_string += ' WHERE %s' % limit_str
-        data = self.new_execute_read(sql_string)
+    def get_raw_data(self, select=None, query=None):
+        if select is None: select = {}
+        if query is None: query = {}
+        data = list(self.col.find(query, select))
+        # data = dict(self.col.find({}, select))
         return data
 
     def get_students_data(self):
-        data = self.new_execute_read("SELECT id, name FROM student")
+        data = list(self.stu.find({}, {'_id': 0}))
         return data
 
     def get_students_group(self, student_name: str):
@@ -179,11 +172,13 @@ class DataBase:
         return data
 
     def get_group_list(self):
-        data = self.new_execute_read("SELECT group_name FROM raw_data")
+        data = self.col.find({}, {'group_name': 1, '_id': 0})
         result = []
         for d in data:
-            if d[0] not in result:
-                result.append(d[0])
+            if 'group_name' not in d:
+                continue
+            if d['group_name'] not in result:
+                result.append(d['group_name'])
         return result
 
     def check_student_info(self, name: str, student_id: int):
@@ -220,19 +215,26 @@ class DataBase:
         data = self.parse_csv_data(csv_data)
         if data is None:
             return False
-        self.new_execute_write("DELETE FROM student")
+        self.stu.drop()
         # print(data)
         for line in data:
-            self.new_execute_write("INSERT INTO student (id, name) VALUES (%s, %s)", (line[0], line[1]))
+            # self.new_execute_write("INSERT INTO student (id, name) VALUES (%s, %s)", (line[0], line[1]))
+            self.stu.insert_one({'id': line[0], 'name': line[1]})
         return True
 
 
 if __name__ == '__main__':
     db = DataBase()
     db.db_init()
-    # with open('StudentID2.csv', 'r', encoding='gbk') as f:
-    #     db.update_student_info(f.read())
-    # print(db.get_students_data())
+
+    db.new_submit('A', 'B', 170236, '语文', 100.0, 'https://github.com',
+                  '', int(time.time()))
+    rdata = db.get_raw_data(select={'_id': 0}, query={})
+    print(rdata)
+
+    with open('StudentID2.csv', 'r', encoding='gbk') as f:
+        db.update_student_info(f.read())
+    print(db.get_students_data())
     # db.db_backup()
 
     # for i in range(10):

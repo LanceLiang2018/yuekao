@@ -271,16 +271,22 @@ def show_data():
         else:
             end_date, end_month = int(end_date), int(end_month)
             end_time_utc = int(datetime(year=year, month=end_month, day=end_date+1).timestamp())
-        time_limit = ''
+        query = {}
+        time_limit = {}
         if start_time_utc is None and end_time_utc is None:
-            time_limit = ''
+            time_limit = {}
         elif start_time_utc is None and start_time_utc is not None:
-            time_limit = 'submit_time <= %s' % end_time_utc
+            # time_limit = 'submit_time <= %s' % end_time_utc
+            time_limit = {'submit_time': {'$lte': end_time_utc}}
         elif start_time_utc is not None and end_time_utc is None:
-            time_limit = 'submit_time >= %s' % start_time_utc
+            # time_limit = 'submit_time >= %s' % start_time_utc
+            time_limit = {'submit_time': {'$gte': start_time_utc}}
         elif start_time_utc is not None and end_time_utc is not None:
-            time_limit = '%s <= submit_time AND submit_time <= %s' % (start_time_utc, end_time_utc)
+            # time_limit = '%s <= submit_time AND submit_time <= %s' % (start_time_utc, end_time_utc)
+            time_limit = {'submit_time': {'$lte': end_time_utc, '$gte': start_time_utc}}
         # print('time_limit:', time_limit, start_time_utc, end_time_utc)
+        if 'submit_time' in time_limit:
+            query['submit_time'] = time_limit['submit_time']
 
         if 'group_name' in args:
             group_name = args['group_name']
@@ -316,12 +322,11 @@ def show_data():
         else:
             download = False
 
-        if time_limit != '':
-            limit = "%s AND subject LIKE '%s' AND group_name LIKE '%s'" % \
-                    (time_limit, subject_to_limit, group_name_to_limit)
-        else:
-            limit = "subject LIKE '%s' AND group_name LIKE '%s'" % \
-                    (subject_to_limit, group_name_to_limit)
+        select = {'_id': 0}
+        if subject_to_limit != '%':
+            query['subject'] = subject_to_limit
+        if group_name_to_limit != '%':
+            query['group_name'] = group_name_to_limit
 
         # print(limit)
 
@@ -329,41 +334,55 @@ def show_data():
 
         # if g_debug is False and ('login' not in session or session['login'] is False):
         #     return render_template('input_password.html', cdn=cdn)
-        data = db.get_raw_data(limit_str=limit)
+        data = db.get_raw_data(query=query, select=select)
+        # print(data)
+
         #     0          1          2          3       4       5         6          7
         # group_name, student, student_id, subject, score, file_url, feedback, submit_time
         #           0         1       2       3       4        5     6       7
 
+        conclude = True
         if conclude is False:
-            labels = ['学科', '提交日期', '组长', '学号', '姓名', '分数', '反馈', '文件']
+            # labels的最后一个元素是垃圾桶
+            labels = ['学科', '提交日期', '组长', '学号', '姓名', '分数', '反馈', '文件', '']
+            relations = {'group_name': '组长', 'student': '姓名', 'student_id': '学号',
+                         'subject': '学科', 'score': '分数', 'file_url': '文件',
+                         'feedback': '反馈', 'submit_time': '提交日期', 'submit_date': ''}
+            relations_re = {}  # 建立一个反向表
+            for r in relations:
+                relations_re[relations[r]] = r
             # 整理数据
             results = []
             for d in data:
-                # print(d)
-                r = ['' for _ in range(8)]
-                timedata2 = time.localtime(int(d[7]))
-                cndata2 = datetime(timedata2[0], timedata2[1], timedata2[2], timedata2[3], timedata2[4], timedata2[5])
-                central2 = pytz.timezone('Asia/Shanghai')
-                time_you = central2.localize(cndata2)
-                r[1] = "%s/%s" % (time_you.month, time_you.day)
-                r[2] = d[0]
-                r[3] = d[2]
-                r[4] = d[1]
-                r[0] = d[3]
-                r[5] = d[4]
-                r[6] = d[6]
-                r[7] = d[5]
-                known_urls.append(r[7])
-                results.append(copy.deepcopy(r))
+                try:
+                    r = ['' for _ in range(len(labels))]
+
+                    timedata2 = time.localtime(int(d['submit_time']))
+                    cndata2 = datetime(timedata2[0], timedata2[1], timedata2[2], timedata2[3], timedata2[4], timedata2[5])
+                    central2 = pytz.timezone('Asia/Shanghai')
+                    time_you = central2.localize(cndata2)
+
+                    for i in d:
+                        r[labels.index(relations[i])] = d[i]
+                    # 再设置一下时间
+                    r[1] = "%s/%s" % (time_you.month, time_you.day)
+
+                    # known_urls.append(r[7])
+                    results.append(copy.deepcopy(r[:-1]))
+                    print(r)
+                except KeyError as e:
+                    print(e)
+            print(results)
+            # return 'debug...'
 
         else:  # conclude
-            labels = ['组长', '学号', '姓名', '语文', '数学', '英语', '物理', '化学', '生物']
+            labels = ['组长', '学号', '姓名', '语文', '数学', '英语', '物理', '化学', '生物', '']
             # subject_label = ['语文', '数学', '英语', '物理', '化学', '生物']
             subject_label_re = {'语文': 0, '数学': 1, '英语': 2, '物理': 3, '化学': 4, '生物': 5}
             # labels2 = ['学科', '提交日期', '组长', '学号', '姓名', '分数', '反馈', '文件']
             students_info_raw = list(db.get_students_data())
-            students_info_raw.sort(key=lambda x: int(x[0]))
-            # print(students_info_raw)
+            students_info_raw.sort(key=lambda x: int(x['id']))
+            print(students_info_raw)
             students_name_id = {}
             students_id_name = {}
             students_group = {}
@@ -418,6 +437,8 @@ def show_data():
             # return ''
 
         groups = db.get_group_list()
+
+        labels = labels[:-1]
         
         download_url = '/data?download=True&start_month=%s&start_date=%s&end_month=%s&' \
                        'end_date=%s&group_name=%s&subject=%s&conclude=%s' % \
@@ -611,6 +632,9 @@ def staff():
 @app.route('/app')
 def download_app():
     return redirect(get_upload_prefix() + 'app.apk')
+
+
+# print(db.get_raw_data(select={'_id': 0, 'group_name': 1}))
 
 
 if __name__ == '__main__':
