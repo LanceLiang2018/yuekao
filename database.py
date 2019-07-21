@@ -192,10 +192,10 @@ if __name__ == '__main__':
     db = DataBase()
     db.db_init()
 
-    db.new_submit('梁鑫嵘', '梁鑫嵘', 170236, '语文', 100.0, 'https://github.com',
-                  '', int(time.time()))
-    db.new_submit('梁鑫嵘', '梁鑫嵘', 170236, '英语', 140.0, 'https://github.com',
-                  '', int(time.time()))
+    # db.new_submit('梁鑫嵘', '梁鑫嵘', 170236, '语文', 100.0, 'https://github.com',
+    #               '', int(time.time()))
+    # db.new_submit('梁鑫嵘', '梁鑫嵘', 170236, '英语', 140.0, 'https://github.com',
+    #               '', int(time.time()))
     rdata = db.get_raw_data(select={'_id': 0}, query={})
     print(rdata)
 

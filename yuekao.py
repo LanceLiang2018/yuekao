@@ -126,8 +126,8 @@ def make_alert(message: str):
     return "<script>alert('%s');</script>" % message
 
 
-# g_debug = True
-g_debug = False
+g_debug = True
+# g_debug = False
 cdn = 'https://cdn-1254016670.cos.ap-chengdu.myqcloud.com/yuekao'
 captcha_secret = 'Lian Gun Jian Pan Liang Ci Ni Xin Bu Xin'
 
@@ -170,16 +170,33 @@ def index():
                 os.remove('tmp/captcha/%s.jpg' % s)
             if p != s:
                 return make_alert('验证码错误或者已经失效，请刷新页面重试。')
-        if 'file' not in request.files:
+        # 收集文件信息
+        # print(list(request.files))
+        files = [request.files['file1'], request.files['file3'],
+                 request.files['file3'], request.files['file4']]
+        print(files)
+        # if 'file' not in request.files:
+        if len(files) == 0:
             return make_alert('没有选择文件。')
-        file = request.files['file']
-        if file.filename == '':
+        file_data_many = []
+        file_type_many = []
+        file_selected = True
+        for file in files:
+            # file = request.files['file']
+            if file.filename != '':
+                file_selected = True
+            else:
+                continue
+            filename = str(file.filename)
+            file_type = filename.split('.')[-1]
+            filedata = io.BytesIO()
+            file.save(filedata)
+            filedata.seek(0)
+            file_data_many.append(filedata)
+            file_type_many.append(file_type)
+        if file_selected is False:
             return make_alert('没有选择文件。')
-        filename = str(file.filename)
-        file_type = filename.split('.')[-1]
-        filedata = io.BytesIO()
-        file.save(filedata)
-        filedata.seek(0)
+        print(file_type_many, file_data_many)
         # print(filedata)
         # file.save(os.path.abspath(os.path.join(file_path, filename)))
 
@@ -207,14 +224,20 @@ def index():
         if db.check_student_info(student_name, student_id) is False:
             return make_alert('学号和名字不匹配！')
 
-        time_date = str(time_cn.year).zfill(4) + '/' + str(time_cn.month).zfill(2) + '/' + str(time_cn.day).zfill(2)
-        file_key = "%s/%s/%s/%s.%s" % (time_date, subject, group_name, student_name, file_type)
-        file_url = get_upload_prefix() + file_key
+        file_urls = ''
+        for i in range(len(file_data_many)):
+            file_type = file_type_many[i]
+            filedata = file_data_many[i]
+            time_date = str(time_cn.year).zfill(4) + '/' + str(time_cn.month).zfill(2) + '/' + str(time_cn.day).zfill(2)
+            file_key = "%s/%s/%s/%s_%s.%s" % (time_date, subject, group_name, student_name, i, file_type)
+            file_url = get_upload_prefix() + file_key
+            # print(file_key)
+            upload_file_threaded(file_key, filedata)
+            file_urls = file_url + '\n'
+        # 去除最后换行
+        file_urls = file_urls[-1]
         submit_time = int(time.time())
-        # print(file_key)
-        upload_file_threaded(file_key, filedata)
-
-        db.new_submit(group_name, student_name, student_id, subject, score, file_url, feedback, submit_time)
+        db.new_submit(group_name, student_name, student_id, subject, score, file_urls, feedback, submit_time)
 
         return make_alert('上传成功启动，可以关闭网页。请等待服务器CDN缓存(约30秒，视文件大小而定)')
 
@@ -371,13 +394,13 @@ def show_data():
                     for url in urls:
                         # known_urls.append(g_url_index)
                         r[7].append(url)
-                        print(url)
+                        # print(url)
                     known_urls.append(r[7])
                     results.append(copy.deepcopy(r[:-1]))
-                    print(r)
+                    # print(r)
                 except KeyError as e:
-                    print(e)
-            print(results)
+                    print('Key Error:', e)
+            # print(results)
             # return 'debug...'
 
         else:  # conclude
@@ -387,7 +410,7 @@ def show_data():
             # labels2 = ['学科', '提交日期', '组长', '学号', '姓名', '分数', '反馈', '文件']
             students_info_raw = list(db.get_students_data())
             students_info_raw.sort(key=lambda x: int(x['id']))
-            print(students_info_raw)
+            # print(students_info_raw)
             # return 'debuging...'
             students_group = {}
             for student in students_info_raw:
@@ -398,7 +421,7 @@ def show_data():
                         students_group[student['name']] = '未知'
                         continue
                     students_group[student['name']] = student_group[0]['group_name']
-            print(students_group)
+            # print(students_group)
             # 整理数据
             results = []
             results_dict = {}
