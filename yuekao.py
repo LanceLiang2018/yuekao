@@ -50,10 +50,10 @@ def csv_to_xlsx(csv_data: str):
     sheet = workbook.add_sheet('data')  # 创建一个sheet表格
     sl = 0
     for line in read:
-        print(line)
+        # print(line)
         r = 0
         for i in line:
-            print(i)
+            # print(i)
             sheet.write(sl, r, i)  # 一个一个将单元格数据写入
             r = r + 1
         sl = sl + 1
