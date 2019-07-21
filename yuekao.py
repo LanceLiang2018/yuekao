@@ -48,15 +48,15 @@ def csv_to_xlsx(csv_data: str):
     read = csv.reader(fp)
     workbook = xlwt.Workbook()
     sheet = workbook.add_sheet('data')  # 创建一个sheet表格
-    # line = 0
+    sl = 0
     for line in read:
-        # print(line)
+        print(line)
         r = 0
         for i in line:
-            # print(i)
-            sheet.write(line, r, i)  # 一个一个将单元格数据写入
+            print(i)
+            sheet.write(sl, r, i)  # 一个一个将单元格数据写入
             r = r + 1
-        # line = line + 1
+        sl = sl + 1
     xlsx_io = io.BytesIO()
     workbook.save(filename_or_stream=xlsx_io)  # 保存Excel
     xlsx_io.seek(0)
