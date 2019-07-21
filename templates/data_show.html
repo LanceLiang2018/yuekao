@@ -101,7 +101,11 @@
                         <tbody> {% for i in content %}
                             <tr> {% for j in i %}
                                 {% if j in known_urls: %}
-                                <td><a href="{{j}}">链接</a></td>
+                                <td>
+                                {% for c in j %}
+                                <a href="{{c}}">链接</a>
+                                {% endfor %}
+                                </td>
                                 {% else %}
                                 <td> {{ j }}
                                 {% endif %}

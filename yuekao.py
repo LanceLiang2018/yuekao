@@ -2,7 +2,6 @@ from flask import *
 from random import randint
 import os
 import time
-import io
 import hashlib
 from datetime import datetime
 import pytz
@@ -14,16 +13,14 @@ import textwrap
 import xlrd
 import xlwt
 import csv
-import psycopg2
-import sqlite3
 import markdown
 
 
 app = Flask(__name__, static_folder='tmp')
 app.secret_key = 'LianGunJianPanDaChuLaiDeZiNiXInBuXin'
 db = DataBase()
-with open('loss.txt', 'r', encoding='utf8') as f:
-    captcha_data = f.read().split('\n\n')
+with open('loss.txt', 'r', encoding='utf8') as losss_f:
+    captcha_data = losss_f.read().split('\n\n')
 print(len(captcha_data))
 
 
@@ -47,19 +44,19 @@ def xlsx_to_csv(xlsx_data: bytes):
 
 
 def csv_to_xlsx(csv_data: str):
-    f = io.StringIO(csv_data)
-    read = csv.reader(f)
+    fp = io.StringIO(csv_data)
+    read = csv.reader(fp)
     workbook = xlwt.Workbook()
     sheet = workbook.add_sheet('data')  # 创建一个sheet表格
-    l = 0
+    # line = 0
     for line in read:
         # print(line)
         r = 0
         for i in line:
             # print(i)
-            sheet.write(l, r, i)  # 一个一个将单元格数据写入
+            sheet.write(line, r, i)  # 一个一个将单元格数据写入
             r = r + 1
-        l = l + 1
+        # line = line + 1
     xlsx_io = io.BytesIO()
     workbook.save(filename_or_stream=xlsx_io)  # 保存Excel
     xlsx_io.seek(0)
@@ -341,7 +338,7 @@ def show_data():
         # group_name, student, student_id, subject, score, file_url, feedback, submit_time
         #           0         1       2       3       4        5     6       7
 
-        conclude = True
+        # conclude = True
         if conclude is False:
             # labels的最后一个元素是垃圾桶
             labels = ['学科', '提交日期', '组长', '学号', '姓名', '分数', '反馈', '文件', '']
@@ -358,7 +355,8 @@ def show_data():
                     r = ['' for _ in range(len(labels))]
 
                     timedata2 = time.localtime(int(d['submit_time']))
-                    cndata2 = datetime(timedata2[0], timedata2[1], timedata2[2], timedata2[3], timedata2[4], timedata2[5])
+                    cndata2 = datetime(timedata2[0], timedata2[1], timedata2[2],
+                                       timedata2[3], timedata2[4], timedata2[5])
                     central2 = pytz.timezone('Asia/Shanghai')
                     time_you = central2.localize(cndata2)
 
@@ -367,7 +365,14 @@ def show_data():
                     # 再设置一下时间
                     r[1] = "%s/%s" % (time_you.month, time_you.day)
 
-                    # known_urls.append(r[7])
+                    # 吧url整理成list
+                    urls = r[7].split('\n')
+                    r[7] = []
+                    for url in urls:
+                        # known_urls.append(g_url_index)
+                        r[7].append(url)
+                        print(url)
+                    known_urls.append(r[7])
                     results.append(copy.deepcopy(r[:-1]))
                     print(r)
                 except KeyError as e:
@@ -383,47 +388,25 @@ def show_data():
             students_info_raw = list(db.get_students_data())
             students_info_raw.sort(key=lambda x: int(x['id']))
             print(students_info_raw)
-            students_name_id = {}
-            students_id_name = {}
+            # return 'debuging...'
             students_group = {}
             for student in students_info_raw:
-                students_name_id[student[1]] = int(student[0])
-                students_id_name[int(student[0])] = str(student[1])
-                if student[1] not in students_group:
-                    student_group = db.get_students_group(student[1])
+                if student['name'] not in students_group:
+                    student_group = db.get_students_group(student['name'])
                     # print(student_group)
                     if len(student_group) == 0:
-                        students_group[student[1]] = '未知'
+                        students_group[student['name']] = '未知'
                         continue
-                    students_group[student[1]] = str(student_group[0][0])
-            # print(students_group)
+                    students_group[student['name']] = student_group[0]['group_name']
+            print(students_group)
             # 整理数据
             results = []
             results_dict = {}
             for stu in students_info_raw:
-                results_dict[stu[1]] = [students_group[stu[1]], stu[0], stu[1], 0, 0, 0, 0, 0, 0]
-            # print(results)
+                results_dict[stu['name']] = [students_group[stu['name']], stu['id'], stu['name'], 0, 0, 0, 0, 0, 0]
+            # print(results_dict)
             for d in data:
-                # print(d)
-                #     0          1          2          3       4       5         6          7
-                # group_name, student, student_id, subject, score, file_url, feedback, submit_time
-                #           0         1       2       3       4        5     6       7
-                # r = ['' for i in range(8)]
-                # timedata2 = time.localtime(int(d[7]))
-                # cndata2 = datetime(timedata2[0], timedata2[1], timedata2[2], timedata2[3], timedata2[4], timedata2[5])
-                # central2 = pytz.timezone('Asia/Shanghai')
-                # time_you = central2.localize(cndata2)
-                # r[1] = "%s/%s" % (time_you.month, time_you.day)
-                # r[2] = d[0]
-                # r[3] = d[2]
-                # r[4] = d[1]
-                # r[0] = d[3]
-                # r[5] = d[4]
-                # r[6] = d[6]
-                # r[7] = d[5]
-                results_dict[d[1]][subject_label_re[d[3]] + 3] = d[4]
-
-                # results.append(copy.deepcopy(r))
+                results_dict[d['student']][subject_label_re[d['subject']] + 3] = d['score']
             for r in results_dict:
                 val = results_dict[r]
                 if group_name != 'all' and val[0] == group_name:
@@ -432,12 +415,14 @@ def show_data():
                     results.append(val)
                 # print(group_name, val)
 
+            # print(results)
             results.sort(key=lambda x: x[1])
 
             # return ''
 
         groups = db.get_group_list()
 
+        # GC
         labels = labels[:-1]
         
         download_url = '/data?download=True&start_month=%s&start_date=%s&end_month=%s&' \
@@ -526,20 +511,10 @@ def clear_all():
     if 'login' not in session or session['login'] is not True:
         return redirect('/admin')
     res_ = None
-    if db.sql_type == db.sql_types['SQLite']:
-        try:
-            db.db_backup()
-        except sqlite3.OperationalError as e:
-            res_ = make_alert('错误。%s' % str(e))
-        except Exception as e:
-            res_ = make_alert('警告！%s' % str(e))
-    else:
-        try:
-            db.db_backup()
-        except psycopg2.errors.UndefinedTable as e:
-            res_ = make_alert('错误。%s' % str(e))
-        except Exception as e:
-            res_ = make_alert('警告！%s' % str(e))
+    try:
+        db.db_backup()
+    except Exception as e:
+        res_ = make_alert('警告！%s' % str(e))
     db.db_init()
     if res_ is None:
         return make_alert('OK.')
@@ -556,12 +531,12 @@ def new_exam():
         return result
     if os.path.exists('StudentID.csv'):
         try:
-            with open('StudentID.csv', encoding='gbk') as f:
-                db.update_student_info(f.read())
+            with open('StudentID.csv', encoding='gbk') as fp:
+                db.update_student_info(fp.read())
         except UnicodeDecodeError:
             try:
-                with open('StudentID.csv', encoding='utf8') as f:
-                    db.update_student_info(f.read())
+                with open('StudentID.csv', encoding='utf8') as fp:
+                    db.update_student_info(fp.read())
             except UnicodeDecodeError:
                 return make_alert('完成，但是学生信息文件错误，没有更新学生信息！')
         return make_alert('完成！')
@@ -645,4 +620,5 @@ if __name__ == '__main__':
             os.remove('tmp/captcha/%s' % _i)
     app.run('0.0.0.0', port=os.getenv("PORT", "5000"), debug=False)
     # captcha_get("12 + 32").show()
+
 

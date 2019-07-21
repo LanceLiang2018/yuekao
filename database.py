@@ -1,5 +1,3 @@
-import copy
-import hashlib
 import json
 import os
 import time
@@ -59,46 +57,10 @@ class DataBase:
 
         self.connect_init()
 
-    # def new_execute_write(self, string: str, args=(), retry=0):
-    #     if retry > self.max_retry:
-    #         raise Exception("Reach max retry times!")
-    #     cursor = self.cursor_get()
-    #     cursor.execute("BEGIN")
-    #     try:
-    #         if len(args) == 0:
-    #             cursor.execute(self.v(string))
-    #         else:
-    #             cursor.execute(self.v(string), args)
-    #     except Exception:
-    #         cursor.execute("ROLLBACK")
-    #         self.cursor_finish(cursor)
-    #         self.new_execute_write(string, args=args, retry=retry+1)
-    #         return
-    #     self.cursor_finish(cursor)
-    #
-    # def new_execute_read(self, string: str, args=(), retry=0):
-    #     if retry > self.max_retry:
-    #         raise Exception("Reach max retry times!")
-    #     cursor = self.cursor_get()
-    #     cursor.execute("BEGIN")
-    #     try:
-    #         if len(args) == 0:
-    #             cursor.execute(self.v(string))
-    #         else:
-    #             cursor.execute(self.v(string), args)
-    #         data = cursor.fetchall()
-    #         self.cursor_finish(cursor)
-    #         return data
-    #     except Exception as e:
-    #         print('Exception:', e)
-    #         cursor.execute("ROLLBACK")
-    #         self.cursor_finish(cursor)
-    #         return self.new_execute_write(string, args=args, retry=retry + 1)
-
     def connect_init(self):
-        # self.client = pymongo.MongoClient("mongodb+srv://lanceliang:1352040930database@lanceliang-9kkx3.azure."
-        #                                   "mongodb.net/test?retryWrites=true&w=majority")
-        self.client = pymongo.MongoClient()
+        self.client = pymongo.MongoClient("mongodb+srv://lanceliang:1352040930database@lanceliang-9kkx3.azure."
+                                          "mongodb.net/test?retryWrites=true&w=majority")
+        # self.client = pymongo.MongoClient()
         self.db = self.client.yuekao
         self.col = self.db.yuekao
         self.stu = self.db.students
@@ -119,7 +81,7 @@ class DataBase:
         backup = {}
         for table in self.tables_struct:
             backup[table] = {}
-            data = self.col.find({})
+            data = list(self.col.find({}, {'_id': 0}))
             backup[table]['labels'] = self.tables_struct[table]
             backup[table]['data'] = data
 
@@ -157,8 +119,10 @@ class DataBase:
             )
 
     def get_raw_data(self, select=None, query=None):
-        if select is None: select = {}
-        if query is None: query = {}
+        if select is None:
+            select = {}
+        if query is None:
+            query = {}
         data = list(self.col.find(query, select))
         # data = dict(self.col.find({}, select))
         return data
@@ -168,7 +132,7 @@ class DataBase:
         return data
 
     def get_students_group(self, student_name: str):
-        data = self.new_execute_read("SELECT group_name FROM raw_data WHERE student = %s", (student_name, ))
+        data = list(self.col.find({'student': student_name}, {'group_name': 1, '_id': 0}))
         return data
 
     def get_group_list(self):
@@ -182,13 +146,14 @@ class DataBase:
         return result
 
     def check_student_info(self, name: str, student_id: int):
-        data = self.new_execute_read("SELECT 1 FROM student WHERE id = %s AND name = %s", (student_id, name))
+        data = list(self.stu.find({'id': student_id, 'name': name}))
         if len(data) == 0:
             # print(data)
             return False
         return True
 
-    def parse_csv_data(self, csv_data: str):
+    @staticmethod
+    def parse_csv_data(csv_data: str):
         lines = csv_data.split('\n')
         results = []
         unit = [0, '']
@@ -227,7 +192,9 @@ if __name__ == '__main__':
     db = DataBase()
     db.db_init()
 
-    db.new_submit('A', 'B', 170236, '语文', 100.0, 'https://github.com',
+    db.new_submit('梁鑫嵘', '梁鑫嵘', 170236, '语文', 100.0, 'https://github.com',
+                  '', int(time.time()))
+    db.new_submit('梁鑫嵘', '梁鑫嵘', 170236, '英语', 140.0, 'https://github.com',
                   '', int(time.time()))
     rdata = db.get_raw_data(select={'_id': 0}, query={})
     print(rdata)
@@ -235,7 +202,7 @@ if __name__ == '__main__':
     with open('StudentID2.csv', 'r', encoding='gbk') as f:
         db.update_student_info(f.read())
     print(db.get_students_data())
-    # db.db_backup()
+    db.db_backup()
 
     # for i in range(10):
     #     db.new_submit('a', 'b', 'c', 100.5, '', '', int(time.time()))
