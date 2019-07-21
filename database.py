@@ -62,7 +62,6 @@ class DataBase:
         #                                   "mongodb.net/test?retryWrites=true&w=majority")
         self.client = pymongo.MongoClient("mongodb+srv://LanceLiang:1352040930database@lanceliang-lktmq.azure."
                                           "mongodb.net/test?retryWrites=true&w=majority")
-
         # self.client = pymongo.MongoClient()
         self.db = self.client.yuekao
         self.col = self.db.yuekao
