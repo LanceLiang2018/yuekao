@@ -102,7 +102,7 @@ class DataBase:
 
     def new_submit(self, group_name, student, student_id, subject, score, file_url, feedback, submit_time):
         submit_time_date = time.localtime(submit_time).tm_mday
-        data = dict(self.col.find({'student': student, 'subject': subject, 'submit_date': submit_time_date}))
+        data = list(self.col.find({'student': student, 'subject': subject, 'submit_date': submit_time_date}, {'_id': 0}))
         if len(data) != 0:
             # 已经存在当天的数据
             self.col.update_one(

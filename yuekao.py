@@ -174,7 +174,7 @@ def index():
         # print(list(request.files))
         files = [request.files['file1'], request.files['file3'],
                  request.files['file3'], request.files['file4']]
-        print(files)
+        # print(files)
         # if 'file' not in request.files:
         if len(files) == 0:
             return make_alert('没有选择文件。')
@@ -196,7 +196,7 @@ def index():
             file_type_many.append(file_type)
         if file_selected is False:
             return make_alert('没有选择文件。')
-        print(file_type_many, file_data_many)
+        # print(file_type_many, file_data_many)
         # print(filedata)
         # file.save(os.path.abspath(os.path.join(file_path, filename)))
 
@@ -233,9 +233,10 @@ def index():
             file_url = get_upload_prefix() + file_key
             # print(file_key)
             upload_file_threaded(file_key, filedata)
-            file_urls = file_url + '\n'
+            file_urls = file_urls + file_url + '\n'
         # 去除最后换行
-        file_urls = file_urls[-1]
+        file_urls = file_urls[:-1]
+        # print(file_urls)
         submit_time = int(time.time())
         db.new_submit(group_name, student_name, student_id, subject, score, file_urls, feedback, submit_time)
 
@@ -397,9 +398,10 @@ def show_data():
                         # print(url)
                     known_urls.append(r[7])
                     results.append(copy.deepcopy(r[:-1]))
-                    # print(r)
+                    print(r[7])
                 except KeyError as e:
                     print('Key Error:', e)
+            print(known_urls)
             # print(results)
             # return 'debug...'
 
